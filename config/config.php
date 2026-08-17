@@ -4,7 +4,7 @@
  * Configurações gerais da aplicação Titanium CRM.
  *
  * IMPORTANTE: ao subir para a Hostinger, ajuste BASE_URL para a URL final
- * (ex: 'https://crm.titaniumconsultoria.com.br' ou com subpasta se necessário).
+ * (ex: 'https://crm.titaniumconsultorias.com.br' ou com subpasta se necessário).
  */
 
 // Evita acesso direto ao arquivo
@@ -25,7 +25,7 @@ if (APP_ENV === 'development') {
 }
 
 // Nome da aplicação
-define('APP_NAME', 'Titanium CRM');
+define('APP_NAME', 'Titanium Consultoria');
 define('COMPANY_NAME', 'Titanium Consultoria');
 
 // Versão de "cache-busting" dos arquivos estáticos (CSS/JS), usada como
@@ -43,7 +43,7 @@ define('ASSET_VERSION', '2026081712');
 // URL base da aplicação (SEM barra no final)
 // Exemplo local: http://localhost/leads/public
 // Exemplo Hostinger: https://seudominio.com.br
-define('BASE_URL', 'https://azure-eel-382308.hostingersite.com');
+define('BASE_URL', 'https://crm.titaniumconsultorias.com.br');
 
 // Caminhos absolutos do sistema de arquivos
 define('ROOT_PATH', dirname(__DIR__));
