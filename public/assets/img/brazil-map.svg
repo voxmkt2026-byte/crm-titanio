@@ -1,0 +1,93 @@
+<svg viewBox="0 0 480 520" xmlns="http://www.w3.org/2000/svg" id="tcBrazilMap">
+  <!--
+    Mapa estilizado do Brasil (cartograma simplificado em grade), Fase 2.
+    Não é geograficamente preciso, mas mantém a posição relativa aproximada
+    das 27 UFs (Norte no topo, Sul embaixo, Nordeste à direita superior,
+    Centro-Oeste ao centro, Sudeste ao centro-sul).
+    Cada estado é um <rect class="uf-state" data-uf="XX"> + <text>.
+    A cor de preenchimento é definida via JS (public/assets/js/app.js /
+    inline no controller de Indicadores) de acordo com a intensidade de leads.
+  -->
+  <g font-family="'Segoe UI', Roboto, Arial, sans-serif">
+    <rect class="uf-state" data-uf="RR" x="148" y="20"  width="56" height="44" rx="8"/>
+    <text class="uf-label" x="176" y="46" text-anchor="middle">RR</text>
+
+    <rect class="uf-state" data-uf="AP" x="212" y="20"  width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="46" text-anchor="middle">AP</text>
+
+    <rect class="uf-state" data-uf="AM" x="84" y="74"  width="56" height="44" rx="8"/>
+    <text class="uf-label" x="112" y="100" text-anchor="middle">AM</text>
+
+    <rect class="uf-state" data-uf="PA" x="212" y="74"  width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="100" text-anchor="middle">PA</text>
+
+    <rect class="uf-state" data-uf="MA" x="276" y="74"  width="56" height="44" rx="8"/>
+    <text class="uf-label" x="304" y="100" text-anchor="middle">MA</text>
+
+    <rect class="uf-state" data-uf="CE" x="340" y="74"  width="56" height="44" rx="8"/>
+    <text class="uf-label" x="368" y="100" text-anchor="middle">CE</text>
+
+    <rect class="uf-state" data-uf="RN" x="404" y="74"  width="56" height="44" rx="8"/>
+    <text class="uf-label" x="432" y="100" text-anchor="middle">RN</text>
+
+    <rect class="uf-state" data-uf="AC" x="20" y="128" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="48" y="154" text-anchor="middle">AC</text>
+
+    <rect class="uf-state" data-uf="RO" x="84" y="128" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="112" y="154" text-anchor="middle">RO</text>
+
+    <rect class="uf-state" data-uf="TO" x="212" y="128" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="154" text-anchor="middle">TO</text>
+
+    <rect class="uf-state" data-uf="PI" x="276" y="128" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="304" y="154" text-anchor="middle">PI</text>
+
+    <rect class="uf-state" data-uf="PE" x="340" y="128" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="368" y="154" text-anchor="middle">PE</text>
+
+    <rect class="uf-state" data-uf="PB" x="404" y="128" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="432" y="154" text-anchor="middle">PB</text>
+
+    <rect class="uf-state" data-uf="MT" x="84" y="182" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="112" y="208" text-anchor="middle">MT</text>
+
+    <rect class="uf-state" data-uf="GO" x="212" y="182" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="208" text-anchor="middle">GO</text>
+
+    <rect class="uf-state" data-uf="BA" x="276" y="182" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="304" y="208" text-anchor="middle">BA</text>
+
+    <rect class="uf-state" data-uf="SE" x="340" y="182" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="368" y="208" text-anchor="middle">SE</text>
+
+    <rect class="uf-state" data-uf="AL" x="404" y="182" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="432" y="208" text-anchor="middle">AL</text>
+
+    <rect class="uf-state" data-uf="MS" x="148" y="236" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="176" y="262" text-anchor="middle">MS</text>
+
+    <rect class="uf-state" data-uf="DF" x="212" y="236" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="262" text-anchor="middle">DF</text>
+
+    <rect class="uf-state" data-uf="MG" x="276" y="236" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="304" y="262" text-anchor="middle">MG</text>
+
+    <rect class="uf-state" data-uf="ES" x="340" y="236" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="368" y="262" text-anchor="middle">ES</text>
+
+    <rect class="uf-state" data-uf="SP" x="212" y="290" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="316" text-anchor="middle">SP</text>
+
+    <rect class="uf-state" data-uf="RJ" x="276" y="290" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="304" y="316" text-anchor="middle">RJ</text>
+
+    <rect class="uf-state" data-uf="PR" x="212" y="344" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="370" text-anchor="middle">PR</text>
+
+    <rect class="uf-state" data-uf="SC" x="212" y="398" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="424" text-anchor="middle">SC</text>
+
+    <rect class="uf-state" data-uf="RS" x="212" y="452" width="56" height="44" rx="8"/>
+    <text class="uf-label" x="240" y="478" text-anchor="middle">RS</text>
+  </g>
+</svg>

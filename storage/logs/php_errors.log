@@ -1,0 +1,4 @@
+[17-Aug-2026 14:27:37 America/Sao_Paulo] PHP Warning:  session_start(): open(C:\xampp\tmp\sess_dgsunbt44itaq5bv708jua702c, O_RDWR) failed: Permission denied (13) in C:\Users\Acer\Downloads\leads\setup.php on line 54
+[17-Aug-2026 14:27:37 America/Sao_Paulo] PHP Warning:  session_start(): Failed to read session data: files (path: C:\xampp\tmp) in C:\Users\Acer\Downloads\leads\setup.php on line 54
+[17-Aug-2026 14:33:48 America/Sao_Paulo] PHP Warning:  session_start(): open(C:\xampp\tmp\sess_nicpfmojiua3k4q58uppgqdcc9, O_RDWR) failed: Permission denied (13) in C:\Users\Acer\Downloads\leads\setup.php on line 62
+[17-Aug-2026 14:33:48 America/Sao_Paulo] PHP Warning:  session_start(): Failed to read session data: files (path: C:\xampp\tmp) in C:\Users\Acer\Downloads\leads\setup.php on line 62

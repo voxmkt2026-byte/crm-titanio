@@ -1,0 +1,22 @@
+# public/.htaccess
+# Roteia todas as requisições para index.php, exceto arquivos/pastas existentes.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Se a requisição já é para um arquivo ou diretório real, serve direto
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Caso contrário, envia tudo para o front controller
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Protege contra listagem de diretórios
+Options -Indexes
+
+# Bloqueia acesso direto a arquivos sensíveis, se por engano ficarem na pasta public
+<FilesMatch "\.(sql|log|md|env)$">
+    Require all denied
+</FilesMatch>

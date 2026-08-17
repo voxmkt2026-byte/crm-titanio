@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório Completo do Sistema — Titanium CRM</title>
+<style>
+  :root{
+    --tc-primary:#1e3a5f; --tc-primary-2:#2c5282; --tc-accent:#e59a2e;
+    --tc-ink:#22303f; --tc-muted:#5b6b7b; --tc-bg:#f5f7fa; --tc-card:#ffffff;
+    --tc-border:#d7dee6; --tc-ok:#1e7e4c; --tc-warn:#b35c00; --tc-err:#b3261e;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  body{
+    margin:0; font-family:'Segoe UI',Arial,Helvetica,sans-serif; color:var(--tc-ink);
+    background:var(--tc-bg); font-size:14px; line-height:1.55;
+  }
+  .page{max-width:1000px; margin:0 auto; padding:0 24px 80px;}
+  header.cover{
+    background:linear-gradient(135deg,var(--tc-primary) 0%,var(--tc-primary-2) 100%);
+    color:#fff; padding:48px 40px; border-radius:0 0 14px 14px; margin-bottom:28px;
+  }
+  header.cover .kicker{letter-spacing:.16em; text-transform:uppercase; font-size:12px; color:#ffd9a0; font-weight:700;}
+  header.cover h1{margin:8px 0 6px; font-size:30px; line-height:1.2;}
+  header.cover p{margin:2px 0; opacity:.92; font-size:14px;}
+  header.cover .meta{margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;}
+  header.cover .meta span{background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); padding:4px 12px; border-radius:999px; font-size:12px;}
+  h2{font-size:21px; color:var(--tc-primary); border-bottom:3px solid var(--tc-accent); padding-bottom:6px; margin:44px 0 14px; page-break-after:avoid;}
+  h2 .num{color:var(--tc-accent); margin-right:8px;}
+  h3{font-size:16px; color:var(--tc-primary-2); margin:26px 0 8px; page-break-after:avoid;}
+  h4{font-size:14px; margin:18px 0 6px; color:var(--tc-ink); page-break-after:avoid;}
+  p{margin:8px 0;}
+  ul,ol{margin:8px 0 8px 0; padding-left:22px;}
+  li{margin:4px 0;}
+  table{width:100%; border-collapse:collapse; margin:12px 0 18px; font-size:13px; background:var(--tc-card);}
+  th{background:var(--tc-primary); color:#fff; text-align:left; padding:8px 10px; font-weight:600;}
+  td{border:1px solid var(--tc-border); padding:7px 10px; vertical-align:top;}
+  tr:nth-child(even) td{background:#f7fafc;}
+  code,pre{font-family:Consolas,'Courier New',monospace;}
+  code{background:#eef2f7; color:#0f3559; padding:1px 5px; border-radius:4px; font-size:12.5px;}
+  pre{background:#0f1c2b; color:#dce8f5; padding:14px 16px; border-radius:8px; overflow:auto; font-size:12px; line-height:1.5;}
+  pre code{background:none; color:inherit; padding:0;}
+  .card{background:var(--tc-card); border:1px solid var(--tc-border); border-radius:10px; padding:18px 20px; margin:14px 0;}
+  .badge{display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; vertical-align:middle;}
+  .b-ok{background:#e5f6ec; color:var(--tc-ok);} .b-warn{background:#fff3e0; color:var(--tc-warn);}
+  .b-info{background:#e8f0fb; color:#1d4ed8;} .b-err{background:#fdecea; color:var(--tc-err);}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .toc{background:var(--tc-card); border:1px solid var(--tc-border); border-radius:10px; padding:20px 24px; margin:20px 0;}
+  .toc a{color:var(--tc-primary); text-decoration:none;} .toc a:hover{text-decoration:underline;}
+  .toc ol{margin:0; columns:2; column-gap:36px;}
+  .toc li{margin:3px 0; break-inside:avoid;}
+  .toc li a{font-size:13px;}
+  .callout{border-left:4px solid var(--tc-accent); background:#fffaf0; padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0;}
+  .callout.warn{border-color:var(--tc-warn); background:#fff8e6;}
+  .callout.err{border-color:var(--tc-err); background:#fdf0ef;}
+  .callout.ok{border-color:var(--tc-ok); background:#f0faf4;}
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0;}
+  .kpi{background:var(--tc-card); border:1px solid var(--tc-border); border-radius:10px; text-align:center; padding:14px 8px;}
+  .kpi .v{font-size:22px; font-weight:800; color:var(--tc-primary);}
+  .kpi .l{font-size:11px; color:var(--tc-muted); text-transform:uppercase; letter-spacing:.06em;}
+  .foot{text-align:center; color:var(--tc-muted); font-size:12px; margin-top:48px; padding-top:16px; border-top:1px solid var(--tc-border);}
+  .print-only{display:none;}
+  @page{size:A4; margin:14mm 12mm;}
+  @media print{
+    body{background:#fff; font-size:11.5px;}
+    .page{max-width:none; padding:0;}
+    header.cover{border-radius:0; padding:28px 24px; margin:0 0 18px;}
+    header.cover h1{font-size:24px;}
+    h2{font-size:17px; margin:26px 0 10px;}
+    h3{font-size:14px;}
+    table{font-size:10.5px;}
+    .toc ol{columns:2;}
+    .kpi .v{font-size:17px;}
+    a{color:inherit; text-decoration:none;}
+    .toc a{color:var(--tc-primary);}
+    pre{font-size:9.5px; background:#f0f3f7; color:#1c2b3a;}
+    pre code{color:#1c2b3a;}
+    .card{page-break-inside:avoid;}
+    tr, td, th{page-break-inside:avoid;}
+    .no-print{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+  <div class="kicker">Relatório Técnico · Documentação do Sistema</div>
+  <h1>Titanium CRM — Relatório Completo</h1>
+  <p>Funcionalidades · Integrações · Funções · Conexões · Ecossistema</p>
+  <div class="meta">
+    <span>Empresa: Titanium Consultoria</span>
+    <span>Segmento: Cartas Contempladas, Consórcios e Crédito</span>
+    <span>Data: 06/08/2026</span>
+    <span>Versão: 8 fases + módulos complementares</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><div class="v">8</div><div class="l">Fases de evolução</div></div>
+  <div class="kpi"><div class="v">21+</div><div class="l">Módulos</div></div>
+  <div class="kpi"><div class="v">37</div><div class="l">Tabelas no banco</div></div>
+  <div class="kpi"><div class="v">10+</div><div class="l">Integrações externas</div></div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="v">29</div><div class="l">Controllers</div></div>
+  <div class="kpi"><div class="v">35</div><div class="l">Models</div></div>
+  <div class="kpi"><div class="v">4</div><div class="l">Serviços</div></div>
+  <div class="kpi"><div class="v">90+</div><div class="l">Rotas registradas</div></div>
+</div>
+
+<div class="toc">
+  <h3>Índice</h3>
+  <ol>
+    <li><a href="#s1">Visão geral do sistema</a></li>
+    <li><a href="#s2">Stack tecnológica</a></li>
+    <li><a href="#s3">Arquitetura e estrutura de pastas</a></li>
+    <li><a href="#s4">Núcleo do micro-framework (core)</a></li>
+    <li><a href="#s5">Serviços de integração</a></li>
+    <li><a href="#s6">Banco de dados (37 tabelas)</a></li>
+    <li><a href="#s7">Funcionalidades por módulo</a></li>
+    <li><a href="#s8">Integrações externas</a></li>
+    <li><a href="#s9">Webhooks públicos</a></li>
+    <li><a href="#s10">Permissões e papéis</a></li>
+    <li><a href="#s11">Segurança</a></li>
+    <li><a href="#s12">Mapa de rotas</a></li>
+    <li><a href="#s13">Inventário técnico (controllers/models/funções)</a></li>
+    <li><a href="#s14">Migrations em ordem</a></li>
+    <li><a href="#s15">Configurações (settings)</a></li>
+    <li><a href="#s16">Automações e agendamentos</a></li>
+    <li><a href="#s17">Deploy e infraestrutura</a></li>
+    <li><a href="#s18">Limitações e pendências</a></li>
+    <li><a href="#s19">Diagrama do ecossistema</a></li>
+  </ol>
+</div>
+
+<!-- ======================= 1. VISÃO GERAL ======================= -->
+<h2 id="s1"><span class="num">1.</span>Visão geral do sistema</h2>
+<p>O <strong>Titanium CRM</strong> é um sistema administrativo completo para a <strong>Titanium Consultoria</strong> — consultoria de aquisição patrimonial via <strong>cartas contempladas, consórcios e crédito</strong>. Sua função central é captar, organizar e conduzir <strong>leads</strong> originados em <strong>Meta Ads</strong> (Facebook/Instagram), <strong>Google Ads</strong> e outras fontes, transformando-os em atendimentos comerciais acompanháveis de ponta a ponta.</p>
+
+<div class="card">
+<h3>1.1 Proposta de valor</h3>
+<ul>
+  <li><strong>Captação automática</strong> de leads via webhooks públicos (Meta, Google e genérico), sem trabalho manual.</li>
+  <li><strong>Organização comercial</strong>: pipeline Kanban, agenda de contatos, SLA de primeira resposta e priorização por Lead Score (0–100).</li>
+  <li><strong>Atendimento</strong>: WhatsApp (duas integrações — Cloud API e Evolution API), chat interno por departamento e tarefas delegáveis.</li>
+  <li><strong>Inteligência</strong>: dashboard com KPIs e insights acionáveis, indicadores geográficos/temporais, relatórios exportáveis e assistente de IA (Gemini).</li>
+  <li><strong>Colaboração</strong>: calendário, documentos/Wiki, whiteboards e automações.</li>
+  <li><strong>Gestão</strong>: usuários, permissões granulares, metas por vendedor, auditoria completa de atividades.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>1.2 Dados técnicos essenciais</h3>
+<table>
+  <tr><th>Item</th><th>Valor</th></tr>
+  <tr><td>Linguagem principal</td><td>PHP 8.x (puro, sem Composer/frameworks/Node)</td></tr>
+  <tr><td>Banco de dados</td><td>MySQL 8 (InnoDB, utf8mb4, FKs e índices)</td></tr>
+  <tr><td>Servidor</td><td>Apache + mod_rewrite (front controller único em <code>public/index.php</code>)</td></tr>
+  <tr><td>Hospedagem-alvo</td><td>Compartilhada (Hostinger) — deploy via FTP, sem build step</td></tr>
+  <tr><td>Modelo de página</td><td>Server-rendered PHP + AJAX pontual (sem SPA/framework JS)</td></tr>
+  <tr><td>PWA</td><td>Instalável (manifest + service worker) + notificações nativas</td></tr>
+  <tr><td>URL base configurada</td><td><code>https://azure-eel-382308.hostingersite.com</code></td></tr>
+  <tr><td>Fuso horário</td><td>America/Sao_Paulo</td></tr>
+  <tr><td>Ambiente</td><td>production (erros ocultos, log em <code>storage/logs/php_errors.log</code>)</td></tr>
+</table>
+</div>
+
+<!-- ======================= 2. STACK ======================= -->
+<h2 id="s2"><span class="num">2.</span>Stack tecnológica</h2>
+
+<h3>2.1 Back-end — recursos nativos do PHP (zero dependências externas)</h3>
+<table>
+  <tr><th>Recurso</th><th>Uso no sistema</th></tr>
+  <tr><td><code>PDO</code> + prepared statements</td><td>100% das queries do banco (anti SQL Injection)</td></tr>
+  <tr><td><code>cURL</code> nativo</td><td>Meta Graph API, WhatsApp Cloud API, Evolution API, Gemini API, crawler de sites</td></tr>
+  <tr><td><code>fsockopen</code> / <code>stream_socket_enable_crypto</code></td><td>Cliente SMTP próprio (STARTTLS/SSL + AUTH LOGIN)</td></tr>
+  <tr><td><code>password_hash()</code> / <code>password_verify()</code></td><td>Senhas com hash bcrypt real</td></tr>
+  <tr><td><code>fgetcsv()</code></td><td>Importação de leads via CSV (sem lib externa)</td></tr>
+  <tr><td><code>DOMDocument</code> / <code>DOMXPath</code></td><td>Extração de conteúdo do crawler de sites</td></tr>
+</table>
+
+<h3>2.2 Front-end — bibliotecas via CDN (sem build step)</h3>
+<table>
+  <tr><th>Biblioteca</th><th>Onde é usada</th></tr>
+  <tr><td>Bootstrap 5.3</td><td>Layout, grid, responsividade mobile-first, modais, dropdowns</td></tr>
+  <tr><td>Chart.js</td><td>Dashboard, SLA, Indicadores, Motivos de Perda</td></tr>
+  <tr><td>Leaflet.js + Leaflet.heat + OpenStreetMap</td><td>Mapa do Brasil em Indicadores (carregado só nessa tela)</td></tr>
+  <tr><td>SweetAlert2</td><td>Confirmações, modais e formulários de todas as telas</td></tr>
+  <tr><td>Toastify.js</td><td>Toasts rápidos (feedback não-bloqueante)</td></tr>
+  <tr><td>Tippy.js</td><td>Tooltips</td></tr>
+  <tr><td>FontAwesome 6</td><td>Ícones da interface</td></tr>
+  <tr><td>HTML5 Drag and Drop (nativo)</td><td>Kanban do Pipeline em desktop</td></tr>
+  <tr><td>Page Visibility API</td><td>Pausa de polling quando a aba está em segundo plano</td></tr>
+</table>
+
+<h3>2.3 Arquivos estáticos próprios</h3>
+<table>
+  <tr><th>Arquivo</th><th>Tamanho</th><th>Função</th></tr>
+  <tr><td><code>public/assets/css/app.css</code></td><td>≈ 70 KB</td><td>Tema (<code>--tc-*</code>), dark mode, responsividade, Kanban, Chat, wizard, impressão</td></tr>
+  <tr><td><code>public/assets/js/app.js</code></td><td>≈ 82 KB</td><td>Notificações, chat, kanban, busca global, ações em lote, wizard, nota rápida, IA, PWA</td></tr>
+  <tr><td><code>public/assets/js/agenda.js</code></td><td>≈ 13 KB</td><td>Agenda (contato rápido, agendamento)</td></tr>
+  <tr><td><code>public/assets/js/evolution.js</code></td><td>≈ 26 KB</td><td>Inbox de Atendimento WhatsApp</td></tr>
+  <tr><td><code>public/assets/js/workspace.js</code></td><td>≈ 25 KB</td><td>Calendário, Wiki, Whiteboards, Automações</td></tr>
+  <tr><td><code>public/assets/data/brazil-states.geojson</code></td><td>≈ 1,6 MB</td><td>GeoJSON dos 27 estados (choropleth do Leaflet)</td></tr>
+  <tr><td><code>public/sw.js</code> + <code>manifest.json</code></td><td>—</td><td>PWA e notificações do navegador</td></tr>
+</table>
+
+<!-- ======================= 3. ARQUITETURA ======================= -->
+<h2 id="s3"><span class="num">3.</span>Arquitetura e estrutura de pastas</h2>
+<pre><code>leads/
+├── app/
+│   ├── controllers/   → 29 controllers (lógica por rota)
+│   ├── models/        → 35 models (camada de dados)
+│   ├── core/          → micro-framework próprio (8 arquivos)
+│   ├── helpers/       → helpers.php + insights.php
+│   ├── services/      → 4 serviços de integração
+│   └── views/         → 22+ pastas de views (HTML)
+├── config/            → config.php + database.php
+├── database/sql/      → schema.sql + seed.sql + 16 migrations
+├── public/            → document root (index.php, .htaccess, assets, uploads, cron, PWA)
+├── storage/
+│   ├── imports/       → CSVs temporários (apagados ao processar)
+│   └── logs/          → php_errors.log, mail.log
+└── README.md          → guia completo de instalação/deploy
+</code></pre>
+
+<div class="callout">
+<strong>Regra de deploy fundamental:</strong> apenas <code>public/</code> fica exposto na web. As pastas <code>app/</code>, <code>config/</code>, <code>database/</code> e <code>storage/</code> devem ficar um nível acima do document root, mantendo os caminhos relativos (<code>dirname(__DIR__)</code> em <code>public/index.php</code>).
+</div>
+
+<!-- ======================= 4. CORE ======================= -->
+<h2 id="s4"><span class="num">4.</span>Núcleo do micro-framework (<code>app/core/</code>)</h2>
+<table>
+  <tr><th>Arquivo</th><th>Responsabilidades</th></tr>
+  <tr><td><code>Router.php</code></td><td>Registro de rotas GET/POST, parâmetros dinâmicos <code>{id}</code>, "primeiro match vence", despacho para o controller/método</td></tr>
+  <tr><td><code>Controller.php</code></td><td>Base: <code>view()</code> (com layout), <code>redirect()</code>, <code>json()</code>, <code>input()</code>, <code>requireLogin()</code></td></tr>
+  <tr><td><code>Model.php</code></td><td>Base: <code>find()</code>, <code>all()</code>, <code>delete()</code>, <code>count()</code></td></tr>
+  <tr><td><code>Database.php</code></td><td>Singleton PDO (conexão única, ERRMODE_EXCEPTION)</td></tr>
+  <tr><td><code>Auth.php</code></td><td>Sessão segura, login/logout, <code>hasRole()</code>, <code>can()</code> (permissões com cache em sessão), <code>clearPermissionCache()</code></td></tr>
+  <tr><td><code>Csrf.php</code></td><td>Token CSRF por sessão, campo oculto, <code>verifyRequest()</code></td></tr>
+  <tr><td><code>Mailer.php</code></td><td>Cliente SMTP próprio (conexão, handshake, TLS, AUTH LOGIN, envio MIME simples); nunca lança exceção — falhas viram <code>false</code> + log</td></tr>
+  <tr><td><code>WhatsappClient.php</code></td><td>Cliente da WhatsApp Cloud API: <code>sendTextMessage()</code>, <code>sendTemplateMessage()</code>, normalização de telefone; mesmo padrão fail-safe</td></tr>
+</table>
+
+<!-- ======================= 5. SERVICES ======================= -->
+<h2 id="s5"><span class="num">5.</span>Serviços de integração (<code>app/services/</code>)</h2>
+<table>
+  <tr><th>Serviço</th><th>Função</th><th>Detalhes</th></tr>
+  <tr><td><code>GeminiService.php</code></td><td>Assistente de IA (Gemini)</td><td><code>ask()</code> (contexto restrito ao usuário: leads/tarefas visíveis + Wiki), modos assistant/approach/objection; <code>analyzeCrawledContent()</code> reorganiza texto de site em artigo de Wiki sem inventar dados. Chave lida do settings ou env <code>GEMINI_API_KEY</code>.</td></tr>
+  <tr><td><code>EvolutionClient.php</code></td><td>Gateway WhatsApp (Evolution API)</td><td><code>fetchInstances</code>, <code>connect</code> (QR/pairing), <code>setWebhook</code>, <code>sendText</code>, <code>findChats</code>, <code>findMessages</code>, <code>findContacts</code>, <code>findLabels</code>, <code>handleLabel</code>. Auth por header <code>apikey</code>. Exige HTTPS.</td></tr>
+  <tr><td><code>WebsiteCrawlerService.php</code></td><td>Extrator de conteúdo de sites</td><td>Crawler com limite de 2 MB, redirecionamentos (máx. 3), User-Agent próprio, remove ruído (script/style/nav/footer), anti-SSRF (bloqueia IPs privados, localhost, credenciais e portas).</td></tr>
+  <tr><td><code>AutomationRunner.php</code></td><td>Motor de automações</td><td>Executa fluxos <code>lead_stale</code>: busca leads sem contato há N dias, aplica ações e registra em <code>automation_runs</code> (deduplicação diária).</td></tr>
+</table>
+
+<!-- ======================= 6. BANCO DE DADOS ======================= -->
+<h2 id="s6"><span class="num">6.</span>Banco de dados — ecossistema de dados (37 tabelas)</h2>
+
+<h3>6.1 Núcleo — <code>schema.sql</code></h3>
+<table>
+  <tr><th>Tabela</th><th>Finalidade</th><th>Campos principais</th></tr>
+  <tr><td><code>users</code></td><td>Equipe interna</td><td>name, email (único), password (bcrypt), role (admin/supervisor/consultor), avatar, active</td></tr>
+  <tr><td><code>loss_reasons</code></td><td>Motivos de perda de lead</td><td>name, active</td></tr>
+  <tr><td><code>leads</code></td><td>Tabela principal — briefing do lead</td><td>name, ddd, phone, whatsapp, email, cpf, city, state, zipcode; source, campaign, adset, ad, utm_*; interest, desired_value, has_down_payment, income_range, profession, company; status, last/next_contact_at, notes, internal_notes, assigned_to, lead_score, temperature, priority; ip_address, device, browser; loss_reason_id</td></tr>
+  <tr><td><code>lead_history</code></td><td>Timeline de eventos do lead</td><td>lead_id, user_id, type (criacao/contato/whatsapp/ligacao/status/observacao/responsavel/agendamento/fechamento/dado_alterado), description</td></tr>
+  <tr><td><code>tags</code> / <code>lead_tags</code></td><td>Etiquetas e relação N:N</td><td>name (único), color; pivot (lead_id, tag_id)</td></tr>
+  <tr><td><code>pipeline_stages</code></td><td>Colunas do Kanban</td><td>name (único), order_position, color</td></tr>
+  <tr><td><code>settings</code></td><td>Configurações chave/valor</td><td>key (PK), value</td></tr>
+  <tr><td><code>activity_log</code></td><td>Auditoria de ações</td><td>user_id, action, details, ip_address, created_at</td></tr>
+</table>
+
+<h3>6.2 Tabelas dos módulos (migrations)</h3>
+<table>
+  <tr><th>Módulo</th><th>Tabelas</th><th>Observações</th></tr>
+  <tr><td>Lead Score (Fase 2)</td><td><code>lead_score_rules</code></td><td>Critérios com peso editável (entrada, valor alto, interesse, origem, temperatura, interações, tempo sem contato)</td></tr>
+  <tr><td>Permissões (Fase 3 + complemento)</td><td><code>permissions</code>, <code>role_permissions</code>, <code>user_permissions</code></td><td>Catálogo de permissões; papel → permissão; allow/deny por usuário específico</td></tr>
+  <tr><td>Notificações (Fase 3)</td><td><code>notifications</code>, <code>notification_events</code></td><td>Sino do topbar + eventos de deduplicação</td></tr>
+  <tr><td>Importação (Fase 4)</td><td><code>imports</code>, <code>import_errors</code></td><td>Registro por importação; erros linha a linha com raw JSON</td></tr>
+  <tr><td>Tarefas</td><td><code>tasks</code>, <code>task_comments</code>, <code>task_history</code>, <code>task_watchers</code></td><td>Demandas internas com SLA, timeline, watchers</td></tr>
+  <tr><td>Chat interno</td><td><code>chat_departments</code>, <code>chat_rooms</code>, <code>chat_room_members</code>, <code>chat_messages</code></td><td>Departamentos, salas, membros com <code>last_read_at</code>, mensagens com soft delete</td></tr>
+  <tr><td>Metas (Fase 7)</td><td><code>user_goals</code></td><td>Meta mensal de fechamentos/novos leads por vendedor</td></tr>
+  <tr><td>Templates WhatsApp (Fase 7)</td><td><code>whatsapp_templates</code></td><td>Mensagens com placeholders {{nome}}/{{interesse}}/{{responsavel}}</td></tr>
+  <tr><td>Workspace</td><td><code>calendar_events</code>, <code>workspace_pages</code>, <code>workspace_attachments</code>, <code>whiteboards</code>, <code>whiteboard_members</code>, <code>knowledge_sources</code></td><td>Calendário, docs/Wiki, anexos, quadros, fontes de conhecimento</td></tr>
+  <tr><td>Automações</td><td><code>automation_flows</code>, <code>automation_runs</code></td><td>Fluxos (trigger JSON + ações JSON) e histórico de execução</td></tr>
+  <tr><td>Preferências</td><td><code>user_workspace_preferences</code></td><td>Preferências individuais do dashboard/workspace</td></tr>
+  <tr><td>Atendimento WhatsApp</td><td><code>evolution_conversation_links</code>, <code>evolution_messages</code>, <code>evolution_agent_mappings</code></td><td>Vínculo conversa↔lead, mensagens, mapeamento de agentes (legado)</td></tr>
+</table>
+
+<h3>6.3 Colunas adicionadas ao longo das fases</h3>
+<ul>
+  <li><code>users</code>: <code>password_reset_token</code>, <code>password_reset_expires</code> (Fase 3), <code>department_id</code> (Chat)</li>
+  <li><code>leads</code>: <code>lead_code</code> (Fase 4, único, formato <code>LEAD-AAAAMMDD-NNNN</code>); ENUM <code>source</code> ampliado com <code>cadastro_manual</code>, <code>whatsapp</code>, <code>importacao_csv</code>, <code>api</code>, <code>webhook</code></li>
+  <li><code>calendar_events</code>: <code>priority</code>, <code>guidance</code> (v2); <code>whiteboards</code>: <code>visibility</code> (v2)</li>
+  <li><code>workspace_pages</code>: <code>assigned_to</code>, <code>category</code>, <code>visibility</code> (v3); <code>automation_flows</code>: <code>description</code>, <code>is_template</code> (v3)</li>
+  <li><code>evolution_conversation_links</code>: <code>labels</code>, <code>last_message</code>, <code>last_message_at</code>, <code>unread_count</code>, <code>avatar_url</code></li>
+  <li>Índices novos em <code>leads</code> (next_contact_at, last_contact_at) e <code>lead_history</code> (type) — Fase 7</li>
+</ul>
+
+<!-- ======================= 7. FUNCIONALIDADES ======================= -->
+<h2 id="s7"><span class="num">7.</span>Funcionalidades por módulo</h2>
+
+<h3>7.1 Acesso e identidade</h3>
+<ul>
+  <li>Login/logout com CSRF, sessão segura (httponly, samesite, secure), <code>session_regenerate_id</code>.</li>
+  <li><strong>Esqueci minha senha</strong>: token com validade de 60 min salvo em <code>users.password_reset_token/expires</code>, envio real via SMTP nativo.</li>
+  <li><strong>Perfil</strong>: editar nome, e-mail, avatar (upload) e trocar senha.</li>
+  <li>Dark mode persistente (localStorage) e identidade visual própria.</li>
+</ul>
+
+<h3>7.2 Dashboard (<code>/dashboard</code>)</h3>
+<ul>
+  <li>KPIs reais via PDO: total de leads, novos (hoje/semana/mês), qualificados, perdidos, em atendimento, taxa de conversão, sem contato.</li>
+  <li>4 gráficos Chart.js: leads por dia, por origem, por estado, funil por status.</li>
+  <li><strong>Insights automáticos</strong> (cards verde/vermelho/amarelo/azul): volume semanal vs. anterior, melhor DDD/origem/consultor por conversão, alerta de queda mês a mês, leads parados 10+ dias — agora <strong>links clicáveis</strong> que abrem a listagem já filtrada.</li>
+</ul>
+
+<h3>7.3 Meu Dia (<code>/hoje</code>)</h3>
+<ul>
+  <li>Visão pessoal unificada (sempre <code>Auth::id()</code>) combinando: leads vencidos (critério da Agenda), tarefas de hoje/atrasadas e leads sem primeiro contato há 24h+.</li>
+  <li>Cards de contador com link à tela de origem + lista ordenada por urgência.</li>
+  <li>Ações rápidas: "Registrar contato agora" (reusa endpoint da Agenda) e "Concluir" (reusa Tarefas).</li>
+  <li>Barra de progresso de meta mensal quando existir.</li>
+</ul>
+
+<h3>7.4 Leads (CRUD completo)</h3>
+<ul>
+  <li>Listagem com busca, filtros, ordenação por coluna e paginação server-side.</li>
+  <li><strong>Wizard de cadastro em 4 abas</strong>: 1) Primeiro Contato · 2) Perfil · 3) Qualificação · 4) Negociação; "Salvar Lead" funciona de qualquer aba.</li>
+  <li><strong>Código único</strong> <code>LEAD-AAAAMMDD-NNNN</code> (sequencial diário, geração com transação <code>FOR UPDATE</code> + retry).</li>
+  <li>Máscaras (telefone/CPF/CEP) e <strong>checagem de duplicidade AJAX</strong> (WhatsApp/telefone/CPF/e-mail) com 3 opções: abrir existente / atualizar existente / criar mesmo assim.</li>
+  <li>Perfil do lead: timeline completa, tags, observação rápida via AJAX, nota rápida, templates de WhatsApp no modal de envio.</li>
+  <li>Colunas de Score (badge), Temperatura e Últ. contato (vermelho quando parado 5+ dias).</li>
+  <li><strong>Escopo "Meus leads"/"Todos"</strong>: consultor travado nos próprios; admin/supervisor com toggle.</li>
+  <li><strong>Ações em lote</strong>: mudar status, reatribuir, aplicar tag — com auditoria por lead (<code>lead_history</code>).</li>
+  <li><strong>Busca global no topbar</strong> (nome, telefone, e-mail, lead_code; debounce 300 ms; LIMIT 8).</li>
+</ul>
+
+<h3>7.5 Pipeline / Kanban (<code>/pipeline</code>)</h3>
+<ul>
+  <li>Colunas conforme <code>pipeline_stages</code>; cards com temperatura (bolinha), score e último contato.</li>
+  <li>Desktop: HTML5 Drag and Drop nativo. Mobile (&lt;768px): scroll-snap por coluna + botão "Mover para" (mesmo endpoint <code>POST /pipeline/move</code>).</li>
+  <li>Filtro por responsável apenas no escopo "Todos os leads".</li>
+  <li>Query única com <code>ROW_NUMBER() OVER (PARTITION BY ...)</code> (MySQL 8) eliminando N+1 (limite 200/status preservado).</li>
+</ul>
+
+<h3>7.6 Agenda (<code>/agenda</code>)</h3>
+<ul>
+  <li>Agrupamento: Atrasados / Hoje / Próximos 7 dias / Mais adiante / Sem data (máx. 50, com aviso).</li>
+  <li><strong>Novo Agendamento</strong>: modal que define <code>next_contact_at</code> de um lead já cadastrado (busca rápida reaproveitada).</li>
+  <li><strong>Registrar contato agora</strong> via AJAX: grava histórico, atualiza contato e recalcula Lead Score.</li>
+  <li>Filtro por responsável (admin/supervisor). Badge de atrasados na sidebar.</li>
+</ul>
+
+<h3>7.7 SLA (<code>/sla</code>)</h3>
+<ul>
+  <li>Tempo médio até primeira resposta; % respondidos em ≤15 min; aguardando primeiro contato há 24h+; tabela comparativa por consultor.</li>
+  <li><strong>Metodologia (Fase 5)</strong>: primeira resposta = qualquer evento <code>contato</code>, <code>whatsapp</code> ou <code>ligacao</code> no <code>lead_history</code>; card explicativo na tela.</li>
+</ul>
+
+<h3>7.8 Indicadores (<code>/indicadores</code>)</h3>
+<ul>
+  <li><strong>Mapa do Brasil (Leaflet.js)</strong>: choropleth por intensidade de leads + heatmap (centroides por UF) + tooltip com total e conversão; fallback gracioso "Mapa indisponível".</li>
+  <li><strong>Heatmap de horários</strong>: 7 dias × 24 horas com intensidade via <code>DAYOFWEEK()</code>/<code>HOUR()</code>.</li>
+  <li>Ranking de estados ao lado.</li>
+</ul>
+
+<h3>7.9 Relatórios (<code>/relatorios</code>)</h3>
+<ul>
+  <li>Filtros por período, estado, origem, status e responsável.</li>
+  <li>Exportação: <strong>CSV</strong> (fputcsv), <strong>Excel</strong> (.xls via HTML), <strong>PDF via impressão</strong> (página formatada + <code>window.print()</code>).</li>
+  <li><strong>Personalização global (Fase 6)</strong>: logo, cor primária, CNPJ/endereço/telefone no cabeçalho, rodapé e seleção/ordem de colunas — aplicadas às 3 exportações.</li>
+</ul>
+
+<h3>7.10 Motivos de Perda (<code>/motivos-perda</code>)</h3>
+<ul>
+  <li>CRUD (criar, renomear, ativar/desativar, excluir), gráfico de ranking Chart.js e paginação.</li>
+</ul>
+
+<h3>7.11 Importação de Leads (<code>/importar</code>)</h3>
+<ul>
+  <li>3 passos: upload (CSV ≤15 MB, separador auto-detectado) → mapeamento de colunas (com prévia e sugestão automática) → processamento (≤2.000 linhas, síncrono).</li>
+  <li>Duplicidade: atualiza existentes (só sobrescreve campos preenchidos) ou cria com <code>source=importacao_csv</code> + <code>lead_code</code>.</li>
+  <li>Relatório detalhado com erros/avisos linha a linha + exportação de erros em CSV.</li>
+  <li>Arquivo temporário em <code>storage/imports/</code> apagado ao final.</li>
+</ul>
+<div class="callout warn"><strong>Limitação:</strong> <code>.xlsx</code> nativo não é suportado (exigiria PhpSpreadsheet/Composer) — converter para CSV antes.</div>
+
+<h3>7.12 Tarefas (<code>/tarefas</code>)</h3>
+<ul>
+  <li>Demandas internas com vínculo opcional a lead; abas Minhas / Criadas por mim / Todas (permissão).</li>
+  <li>Timeline (<code>task_history</code>), comentários, watchers (criador vira watcher), mudança rápida de status via AJAX.</li>
+  <li><strong>SLA de tarefa</strong> (<code>sla_hours</code>): "Xh restantes" / "Estourado" / "Concluída dentro/fora do SLA"; <code>due_at</code> independente com badge de atrasada.</li>
+  <li><strong>Sincronização com Agenda</strong> (conservadora): checkbox no form atualiza <code>next_contact_at</code>; botão "Concluir e sincronizar contato do lead"; aviso ao registrar contato com tarefa aberta. Eventos registrados em <code>lead_history</code>.</li>
+</ul>
+
+<h3>7.13 Chat Interno (<code>/chat</code>)</h3>
+<ul>
+  <li>Salas por <strong>departamento</strong> (Comercial, Suporte, Financeiro, Diretoria, Geral), grupos customizados e <strong>DM 1-a-1</strong>.</li>
+  <li>Polling AJAX (5 s na tela via <code>since_id</code>; 18 s no badge da sidebar; pausado em segundo plano).</li>
+  <li>Histórico incremental, marcar lido, silenciar, sair, membros, typeahead de usuários.</li>
+  <li><strong>Comandos</strong>: <code>/ajuda</code>, <code>/limpar</code>, <code>/adicionar @usuario</code>, <code>/remover @usuario</code> (validação de permissão no backend).</li>
+  <li>Moderação por papel local na sala (membro/moderador/admin_sala) + global <code>chat.moderate</code>.</li>
+  <li>Soft delete de mensagens, XSS prevenido (escape PHP + JS), toasts e animações.</li>
+</ul>
+<div class="callout warn"><strong>Limitações aceitas:</strong> sem WebSocket (delay ~5 s); trocar de sala recarrega; sem upload de arquivo no chat (v1).</div>
+
+<h3>7.14 Atendimento WhatsApp — Evolution API (<code>/atendimento-whatsapp</code>)</h3>
+<ul>
+  <li>Inbox estilo "Zap Responder/Chatwoot": lista de conversas com filtros (todas/não lidas/minhas/não atribuídas) e busca.</li>
+  <li>Envio de mensagens e <strong>notas internas</strong> (privadas).</li>
+  <li>Vínculo com leads (manual ou automático por telefone), <strong>criar lead</strong> e <strong>criar tarefa</strong> direto da conversa.</li>
+  <li>Transferência (atualiza responsável do lead também), etiquetas (espelhadas em tags do lead), sincronização de histórico antigo, QR code de conexão, teste de conexão, configuração automática do webhook.</li>
+  <li>Responsável do lead é a fonte da verdade (dessincronização corrigida automaticamente).</li>
+  <li>Polling AJAX por conversa; contatos de anúncio <code>@lid</code> exigem número manual.</li>
+</ul>
+
+<h3>7.15 Calendário (<code>/calendario</code>)</h3>
+<ul>
+  <li>Eventos com data/hora, dia inteiro, cor, prioridade, descrição e orientação.</li>
+  <li>Vínculo opcional com lead e responsável; opção de criar tarefa automaticamente.</li>
+  <li>Arrastar para mover (AJAX) e exclusão com regra de permissão (criador ou gestão).</li>
+  <li>Notificação interna ao atribuir evento a outro usuário.</li>
+</ul>
+
+<h3>7.16 Documentos e Wiki (<code>/conteudo</code>)</h3>
+<ul>
+  <li>Páginas tipo documento/wiki com categoria, tags, fixação, visibilidade (equipe/privado) e vínculo com lead.</li>
+  <li>Anexos (PDF, TXT, Excel, CSV, imagens ≤15 MB) em <code>public/uploads/workspace/</code>.</li>
+  <li><strong>Fontes de Conhecimento</strong> (admin): URL → crawler (validação anti-SSRF) → análise IA opcional → publicação na Wiki. Seed com páginas oficiais da Titanium.</li>
+</ul>
+
+<h3>7.17 Whiteboards (<code>/whiteboards</code>)</h3>
+<ul>
+  <li>Quadros colaborativos com <code>board_json</code>, visibilidade e membros.</li>
+  <li>Exclusão apenas por criador ou gestão.</li>
+</ul>
+
+<h3>7.18 Automações (<code>/automacoes</code>) — admin/supervisor</h3>
+<ul>
+  <li>Fluxos "lead parado" (sem contato há N dias).</li>
+  <li>Ações combináveis: Criar tarefa · Avisar gestor · Aumentar prioridade · Notificar responsável · Adicionar tag "Automação" · Registrar histórico · Enviar WhatsApp (template aprovado).</li>
+  <li>Execução manual (botão), por cron (<code>cron-automations.php</code>) e template pré-carregado.</li>
+  <li>Log em <code>automation_runs</code> (sucesso/parcial/erro) com deduplicação diária por lead.</li>
+</ul>
+
+<h3>7.19 Assistente IA — Gemini (FAB flutuante em todas as telas)</h3>
+<ul>
+  <li>4 modos: assistente geral, <strong>abordagem comercial</strong>, <strong>quebra de objeção</strong>, busca na Wiki.</li>
+  <li>Contexto limitado ao que o usuário pode ver (leads visíveis, tarefas, wiki); nunca inventa dados; português do Brasil.</li>
+  <li>Config em Configurações (<code>gemini_api_key</code>, <code>gemini_model</code>).</li>
+</ul>
+
+<h3>7.20 Notificações internas</h3>
+<ul>
+  <li>Sino no topbar com contador + dropdown + "marcar todas como lidas"; polling a cada 45 s.</li>
+  <li>Gatilhos: lead novo atribuído, status crítico no Kanban, lead parado 5+ dias (sob demanda), mensagens do WhatsApp, nova tarefa/evento atribuído, automações.</li>
+</ul>
+
+<h3>7.21 Gestão administrativa</h3>
+<ul>
+  <li><strong>Usuários</strong> (admin): CRUD com papel, ativo/inativo, departamento e senha.</li>
+  <li><strong>Departamentos</strong> (admin): catálogo com cor/ícone, cria sala de chat automaticamente; "Geral" não pode ser desativado.</li>
+  <li><strong>Metas</strong> (admin/supervisor): meta mensal de fechamentos/novos leads + progresso no Meu Dia.</li>
+  <li><strong>Configurações</strong> (admin): identidade, SMTP, WhatsApp Cloud, Evolution, webhooks, Gemini, automação.</li>
+  <li><strong>Lead Score</strong> (admin): edição de critérios e pesos por origem.</li>
+  <li><strong>Templates de WhatsApp</strong> (admin): CRUD com placeholders.</li>
+  <li><strong>Logs</strong> (admin): auditoria paginada com filtros.</li>
+</ul>
+
+<!-- ======================= 8. INTEGRAÇÕES ======================= -->
+<h2 id="s8"><span class="num">8.</span>Integrações externas</h2>
+<table>
+  <tr><th>Integração</th><th>Direção</th><th>O que faz</th><th>Configuração</th></tr>
+  <tr><td><strong>Meta Ads (Lead Gen)</strong></td><td>Entrada</td><td>Webhook recebe o evento; quando só vem <code>leadgen_id</code>, busca dados completos na Graph API com o token de página (<code>leads_retrieval</code>); gera lead, histórico e Lead Score</td><td>Token secreto do webhook + Token Graph API</td></tr>
+  <tr><td><strong>Google Ads (Lead Form)</strong></td><td>Entrada</td><td>Recebe leads via "Conectar CRM" com mapeamento de campos e UTMs</td><td>Token secreto do webhook</td></tr>
+  <tr><td><strong>Webhook genérico</strong></td><td>Entrada</td><td>Qualquer POST (Zapier, Make, landing page, formulário) com campos de lead (JSON ou form-urlencoded)</td><td>Token secreto do webhook</td></tr>
+  <tr><td><strong>WhatsApp Cloud API (Meta)</strong></td><td>Saída + Entrada</td><td>Envio de texto (janela 24h) e templates; webhook recebe respostas e notifica responsável</td><td><code>whatsapp_token</code>, <code>whatsapp_phone_id</code>, <code>webhook_verify_token</code></td></tr>
+  <tr><td><strong>Evolution API (gateway self-hosted)</strong></td><td>Entrada + Saída</td><td>Inbox completo de atendimento, envio, QR/pairing, etiquetas, sincronização e webhook em tempo real</td><td><code>evolution_api_url</code>, <code>evolution_api_token</code>, <code>evolution_instance_name</code>, <code>evolution_webhook_token</code></td></tr>
+  <tr><td><strong>SMTP (e-mail Hostinger)</strong></td><td>Saída</td><td>"Esqueci minha senha" e notificação ao consultor atribuído</td><td><code>smtp_host/port/encryption/user/pass/from_*</code></td></tr>
+  <tr><td><strong>Google Gemini (IA)</strong></td><td>Saída</td><td>Assistente, abordagens, objeções, análise de conteúdo para Wiki</td><td><code>gemini_api_key</code> (ou env), <code>gemini_model</code></td></tr>
+  <tr><td><strong>Web Crawler</strong></td><td>Saída</td><td>Extração de sites para a Wiki com validação anti-SSRF</td><td>Uso interno (admin)</td></tr>
+  <tr><td><strong>Leaflet + OpenStreetMap</strong></td><td>Front-end</td><td>Mapa do Brasil em Indicadores</td><td>CDN + GeoJSON local</td></tr>
+  <tr><td><strong>PWA / Service Worker</strong></td><td>Front-end</td><td>App instalável + notificações nativas do navegador</td><td>Nativo; push Web real requer VAPID (pendente)</td></tr>
+</table>
+
+<div class="card">
+<h3>8.1 Resumo do fluxo de cada integração</h3>
+<ul>
+  <li><strong>Meta Ads:</strong> Meta envia <code>POST /webhook/meta?token=...</code> → controller valida token → se payload tiver <code>leadgen_id</code>, chama Graph API → mapeia → deduplica (Lead::findDuplicate) → cria lead + <code>lead_history</code> + Lead Score.</li>
+  <li><strong>Google Ads:</strong> <code>POST /webhook/google?token=...</code> → mapeia campos → mesmo fluxo de criação/deduplicação.</li>
+  <li><strong>Genérico:</strong> <code>POST /webhook/generico?token=...</code> → aceita JSON ou form-urlencoded → mesmo fluxo.</li>
+  <li><strong>WhatsApp Cloud:</strong> <code>GET/POST /webhook/whatsapp</code> → verificação Meta (hub.challenge) + recebimento; envia por <code>WhatsappClient</code> (texto/template) e registra no histórico do lead.</li>
+  <li><strong>Evolution:</strong> <code>POST /webhook/evolution?token=...</code> → grava mensagens em <code>evolution_messages</code>, atualiza conversas, casa com lead por telefone, notifica responsável; envio via <code>EvolutionClient</code>.</li>
+  <li><strong>SMTP:</strong> <code>Mailer::send()</code> usado no reset de senha e na notificação de atribuição; falhas vão para <code>storage/logs/mail.log</code> sem travar o fluxo.</li>
+  <li><strong>Gemini:</strong> <code>POST /assistente/perguntar</code> → monta contexto permitido → chama <code>generativelanguage.googleapis.com/v1beta/interactions</code> → responde com fonte "Leads e tarefas permitidos / Central de conhecimento".</li>
+</ul>
+</div>
+
+<!-- ======================= 9. WEBHOOKS ======================= -->
+<h2 id="s9"><span class="num">9.</span>Webhooks públicos (sem login, protegidos por token)</h2>
+<table>
+  <tr><th>Endpoint</th><th>Métodos</th><th>Função</th></tr>
+  <tr><td><code>/webhook/meta</code></td><td>GET + POST</td><td>Verificação (<code>hub.challenge</code>) e recebimento de leads da Meta</td></tr>
+  <tr><td><code>/webhook/google</code></td><td>POST</td><td>Recebimento de leads do Google Ads</td></tr>
+  <tr><td><code>/webhook/generico</code></td><td>POST</td><td>Recebimento genérico (Zapier/Make/formulários)</td></tr>
+  <tr><td><code>/webhook/whatsapp</code></td><td>GET + POST</td><td>Verificação e recebimento de mensagens da WhatsApp Cloud API</td></tr>
+  <tr><td><code>/webhook/evolution</code></td><td>POST</td><td>Recebimento em tempo real de mensagens da Evolution API</td></tr>
+  <tr><td><code>/cron-automations.php?token=...</code></td><td>GET</td><td>Execução agendada (cron) das automações</td></tr>
+</table>
+<div class="callout"><strong>Segurança dos webhooks:</strong> todos comparam o token recebido com o configurado usando <code>hash_equals()</code>. A Evolution responde sempre <code>success</code> para não reenviar/desativar o webhook por erro de parsing.</div>
+
+<!-- ======================= 10. PERMISSÕES ======================= -->
+<h2 id="s10"><span class="num">10.</span>Permissões e papéis</h2>
+
+<h3>10.1 Papéis</h3>
+<ul>
+  <li><strong>admin</strong>: acesso total (Usuários, Departamentos, Configurações, Logs, Fontes de Conhecimento, QR Evolution, testes de integração).</li>
+  <li><strong>supervisor</strong>: tudo exceto telas exclusivas de admin; vê todos os leads; transfere atendimentos.</li>
+  <li><strong>consultor</strong>: opera leads próprios, tarefas, chat, atendimentos a ele atribuídos, criação de leads.</li>
+</ul>
+
+<h3>10.2 Matriz de permissões (por slug)</h3>
+<table>
+  <tr><th>Permissão</th><th>admin</th><th>supervisor</th><th>consultor</th></tr>
+  <tr><td>leads.view / create / edit</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  <tr><td>leads.delete</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>leads.export</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>pipeline.manage</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  <tr><td>reports.view</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>users.manage / settings.manage</td><td>✅</td><td>❌</td><td>❌</td></tr>
+  <tr><td>tasks.view_all / tasks.manage</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>tasks.create</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  <tr><td>chat.moderate</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>chat.create_room</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  <tr><td>evolution.view</td><td>✅</td><td>✅</td><td>✅</td></tr>
+  <tr><td>evolution.manage</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>goals.manage</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>workspace.manage</td><td>✅</td><td>✅</td><td>❌</td></tr>
+  <tr><td>automations.manage</td><td>✅</td><td>✅</td><td>❌</td></tr>
+</table>
+
+<h3>10.3 Regras de escopo por registro (sempre no backend)</h3>
+<ul>
+  <li>Consultor só vê/edita os <strong>próprios leads</strong> (<code>assigned_to = Auth::id()</code>).</li>
+  <li>Tarefas: apenas criador, responsável ou watcher (sem <code>tasks.view_all</code>).</li>
+  <li>Chat: só participa de salas onde é membro (<code>chat_room_members</code>); moderação por papel local ou global.</li>
+  <li>Atendimento WhatsApp: apenas responsável da conversa ou gestão.</li>
+  <li>Permissões extras por pessoa via <code>user_permissions</code> (allow/deny sem mudar papel).</li>
+</ul>
+
+<!-- ======================= 11. SEGURANÇA ======================= -->
+<h2 id="s11"><span class="num">11.</span>Segurança</h2>
+<table>
+  <tr><th>Ameaça</th><th>Contramedida</th></tr>
+  <tr><td>SQL Injection</td><td>100% das queries com PDO + prepared statements</td></tr>
+  <tr><td>XSS</td><td>Todo output via <code>e()</code>; mensagens de chat escapadas na saída (PHP <code>e()/nl2br</code> + JS <code>escapeHtml()</code>)</td></tr>
+  <tr><td>CSRF</td><td>Token por sessão exigido em todo POST (<code>Csrf::verifyRequest()</code>)</td></tr>
+  <tr><td>Sequestro de sessão</td><td>Cookies httponly, SameSite=Lax, Secure, strict mode, <code>session_regenerate_id</code></td></tr>
+  <tr><td>Senhas em texto puro</td><td>bcrypt via <code>password_hash()</code>; tokens de reset com expiração</td></tr>
+  <tr><td>Acesso indevido a webhooks</td><td>Token secreto comparado com <code>hash_equals()</code>; botão "Gerar" usa <code>crypto.getRandomValues</code></td></tr>
+  <tr><td>SSRF no crawler</td><td>Somente HTTPS; bloqueio de localhost/redes privadas/credenciais/portas; limite de redirecionamentos</td></tr>
+  <tr><td>Upload malicioso</td><td>Validação de MIME + extensão + tamanho (15 MB); nomes aleatórios (<code>bin2hex(random_bytes)</code>)</td></tr>
+  <tr><td>Vazamento de chaves</td><td>Campos de senha nunca exibidos em claro; chaves mascaradas; <code>GEMINI_API_KEY</code> nunca versionada</td></tr>
+  <tr><td>Queda de integração externa</td><td>Todos os clientes são fail-safe (try/catch + log) — o fluxo principal nunca é interrompido</td></tr>
+</table>
+
+<!-- ======================= 12. ROTAS ======================= -->
+<h2 id="s12"><span class="num">12.</span>Mapa de rotas</h2>
+
+<h3>12.1 Públicas</h3>
+<table>
+  <tr><th>Rota</th><th>Método</th><th>Controlador</th></tr>
+  <tr><td>/ , /login</td><td>GET</td><td>AuthController@login</td></tr>
+  <tr><td>/login</td><td>POST</td><td>AuthController@authenticate</td></tr>
+  <tr><td>/logout</td><td>GET</td><td>AuthController@logout</td></tr>
+  <tr><td>/esqueci-senha</td><td>GET/POST</td><td>AuthController@forgotPassword / sendResetLink</td></tr>
+  <tr><td>/redefinir-senha</td><td>GET/POST</td><td>AuthController@resetPasswordForm / resetPassword</td></tr>
+  <tr><td>/webhook/meta</td><td>GET/POST</td><td>WebhookController@verifyMeta / meta</td></tr>
+  <tr><td>/webhook/google</td><td>POST</td><td>WebhookController@google</td></tr>
+  <tr><td>/webhook/generico</td><td>POST</td><td>WebhookController@generico</td></tr>
+  <tr><td>/webhook/whatsapp</td><td>GET/POST</td><td>WhatsappInboundController@verify / receive</td></tr>
+  <tr><td>/webhook/evolution</td><td>POST</td><td>EvolutionWebhookController@receive</td></tr>
+  <tr><td>/cron-automations.php</td><td>GET</td><td>AutomationRunner (script)</td></tr>
+</table>
+
+<h3>12.2 Autenticadas (principais)</h3>
+<table>
+  <tr><th>Área</th><th>Rotas</th></tr>
+  <tr><td>Dashboard / Meu Dia</td><td><code>/dashboard</code>, <code>/dashboard/chart-data</code>, <code>/hoje</code></td></tr>
+  <tr><td>Leads</td><td><code>/leads</code>, <code>/leads/create</code>, <code>/leads/buscar-rapido</code>, <code>/leads/store</code>, <code>/leads/{id}</code>, <code>/leads/{id}/edit</code>, <code>/leads/{id}/update</code>, <code>/leads/{id}/delete</code>, <code>/leads/{id}/note</code>, <code>/leads/check-duplicate</code>, <code>/leads/{id}/whatsapp</code>, <code>/leads/acao-em-lote</code>, <code>/leads/{id}/nota-rapida</code></td></tr>
+  <tr><td>Pipeline / Agenda</td><td><code>/pipeline</code>, <code>/pipeline/move</code>, <code>/agenda</code>, <code>/agenda/agendar</code>, <code>/agenda/{id}/quick-contact</code></td></tr>
+  <tr><td>Análise</td><td><code>/sla</code>, <code>/indicadores</code>, <code>/relatorios</code> (+exportar-csv/excel/imprimir/personalizar), <code>/motivos-perda</code> (+store/update/delete)</td></tr>
+  <tr><td>Importação</td><td><code>/importar</code>, <code>/importar/preview</code>, <code>/importar/processar</code>, <code>/importar/relatorio/{id}</code>, <code>/importar/relatorio/{id}/exportar-erros</code></td></tr>
+  <tr><td>Workspace</td><td><code>/calendario*</code>, <code>/conteudo*</code>, <code>/whiteboards*</code>, <code>/automacoes*</code>, <code>/workspace/preferencias</code>, <code>/assistente/perguntar</code></td></tr>
+  <tr><td>Gestão</td><td><code>/usuarios*</code>, <code>/departamentos*</code>, <code>/perfil*</code>, <code>/configuracoes*</code>, <code>/configuracoes/lead-score*</code>, <code>/configuracoes/whatsapp-templates*</code>, <code>/metas*</code>, <code>/logs</code></td></tr>
+  <tr><td>Notificações</td><td><code>/notifications/unread</code>, <code>/notifications/{id}/read</code>, <code>/notifications/read-all</code></td></tr>
+  <tr><td>Chat</td><td><code>/chat</code>, <code>/chat/salas/{id}/mensagens</code>, <code>/chat/salas/{id}/ler|silenciar|sair</code>, <code>/chat/salas/{id}/membros</code>, <code>/chat/salas</code>, <code>/chat/direto/{userId}</code>, <code>/chat/mensagens/{id}/apagar</code>, <code>/chat/usuarios/buscar</code>, <code>/chat/nao-lidas</code></td></tr>
+  <tr><td>Tarefas</td><td><code>/tarefas</code>, <code>/tarefas/nova</code>, <code>/tarefas</code> (POST), <code>/tarefas/{id}</code>, <code>/tarefas/{id}/edit</code>, <code>/tarefas/{id}/comentarios</code>, <code>/tarefas/{id}/status</code>, <code>/tarefas/{id}/excluir</code></td></tr>
+  <tr><td>Atendimento WhatsApp</td><td><code>/atendimento-whatsapp</code>, <code>/{id}/poll|enviar|vincular-lead|criar-lead|criar-tarefa|atualizar-contato|telefone|transferir|etiquetas</code>, <code>/notas/{id}/remover</code>, <code>/mapeamentos</code>, <code>/testar</code>, <code>/qrcode</code>, <code>/sincronizar</code>, <code>/webhook/configurar</code></td></tr>
+</table>
+
+<!-- ======================= 13. INVENTÁRIO ======================= -->
+<h2 id="s13"><span class="num">13.</span>Inventário técnico</h2>
+
+<h3>13.1 Controllers (29)</h3>
+<p><code>AgendaController</code>, <code>AuthController</code>, <code>ChatController</code>, <code>DashboardController</code>, <code>DepartmentController</code>, <code>EvolutionInboxController</code>, <code>EvolutionWebhookController</code>, <code>GoalController</code>, <code>ImportController</code>, <code>IndicatorController</code>, <code>LeadController</code>, <code>LeadScoreController</code>, <code>LogController</code>, <code>LossReasonController</code>, <code>NotificationController</code>, <code>PipelineController</code>, <code>ProfileController</code>, <code>ReportController</code>, <code>SettingController</code>, <code>SlaController</code>, <code>TaskController</code>, <code>TodayController</code>, <code>UserController</code>, <code>WebhookController</code>, <code>WhatsappController</code>, <code>WhatsappInboundController</code>, <code>WhatsappTemplateController</code>, <code>WorkspaceController</code>.</p>
+
+<h3>13.2 Models (35)</h3>
+<p><code>ActivityLog</code>, <code>ChatDepartment</code>, <code>ChatMessage</code>, <code>ChatRoom</code>, <code>Import</code>, <code>ImportError</code>, <code>Lead</code>, <code>LeadHistory</code>, <code>LeadScore</code>, <code>LossReason</code>, <code>Notification</code>, <code>Permission</code>, <code>PipelineStage</code>, <code>Setting</code>, <code>Tag</code>, <code>Task</code>, <code>TaskComment</code>, <code>TaskHistory</code>, <code>TaskWatcher</code>, <code>User</code>, <code>UserGoal</code>, <code>WhatsappTemplate</code> (e classes internas do Auth).</p>
+
+<h3>13.3 Funções globais (<code>helpers.php</code>)</h3>
+<table>
+  <tr><th>Grupo</th><th>Funções</th></tr>
+  <tr><td>Saída/URL</td><td><code>e()</code>, <code>old()</code>, <code>asset()</code>, <code>url()</code></td></tr>
+  <tr><td>Formatação</td><td><code>format_phone/cpf/cep/money/date()</code>, <code>time_ago()</code>, <code>chat_date_label()</code></td></tr>
+  <tr><td>Rótulos</td><td><code>status_label/color()</code>, <code>source_label()</code>, <code>interest_label()</code>, <code>temperature_label/badge_class()</code>, <code>score_badge_class()</code>, <code>days_since_contact_*()</code></td></tr>
+  <tr><td>Dados</td><td><code>brazilian_states()</code></td></tr>
+  <tr><td>Auditoria/UI</td><td><code>log_activity()</code>, <code>render_pagination()</code>, <code>flash()</code>, <code>tc_nav_active()</code></td></tr>
+</table>
+
+<h3>13.4 Insights (<code>insights.php</code>)</h3>
+<p><code>generate_insights(PDO $db, array $base)</code> — comparação semanal, melhores DDD/origem/consultor, alertas de conversão e de leads parados. <strong>Nota MySQL 8:</strong> nunca usar alias de agregação em expressão/ORDER BY/HAVING (padrão já varrido e corrigido em todo o projeto).</p>
+
+<!-- ======================= 14. MIGRATIONS ======================= -->
+<h2 id="s14"><span class="num">14.</span>Migrations — ordem de instalação</h2>
+<ol>
+  <li><code>schema.sql</code> — 9 tabelas base</li>
+  <li><code>seed.sql</code> — usuários, estágios, tags, motivos, configs, 19 leads fictícios, admin padrão</li>
+  <li><code>migration_fase2.sql</code> — <code>lead_score_rules</code> + pesos padrão</li>
+  <li><code>migration_fase3.sql</code> — <code>permissions</code>, <code>role_permissions</code>, <code>notifications</code>, reset de senha, chaves SMTP/WhatsApp/webhook</li>
+  <li><code>migration_fase4.sql</code> — <code>lead_code</code>, ENUM source, <code>imports</code>, <code>import_errors</code></li>
+  <li><code>migration_fase5.sql</code> — pesos do Lead Score por origem (<code>origem_&lt;source&gt;</code>)</li>
+  <li><code>migration_tasks.sql</code> e <code>migration_chat.sql</code> — independentes entre si</li>
+  <li><code>migration_fase7_agenda.sql</code> e <code>migration_fase7_leads.sql</code> — independentes</li>
+  <li><code>migration_workspace.sql</code> → <code>_v2</code> → <code>_v3</code> → <code>_v4</code> (nesta ordem)</li>
+  <li><code>migration_evolution_inbox.sql</code> → <code>migration_evolution_api.sql</code> → <code>migration_evolution_api_v2.sql</code></li>
+  <li><code>migration_user_permissions.sql</code> — opcional, a qualquer momento após a fase 3</li>
+</ol>
+<div class="callout ok"><strong>Idempotência:</strong> todas usam <code>CREATE TABLE IF NOT EXISTS</code>, <code>INSERT IGNORE</code> e stored procedures condicionais — seguras para rodar em produção com dados reais.</div>
+
+<!-- ======================= 15. SETTINGS ======================= -->
+<h2 id="s15"><span class="num">15.</span>Configurações do sistema (chaves da tabela <code>settings</code>)</h2>
+<table>
+  <tr><th>Grupo</th><th>Chaves</th></tr>
+  <tr><td>Identidade</td><td><code>company_name</code>, <code>company_logo</code>, <code>company_favicon</code></td></tr>
+  <tr><td>SMTP</td><td><code>smtp_host</code>, <code>smtp_port</code>, <code>smtp_encryption</code>, <code>smtp_user</code>, <code>smtp_pass</code>, <code>smtp_from_name</code>, <code>smtp_from_email</code></td></tr>
+  <tr><td>WhatsApp Cloud</td><td><code>whatsapp_token</code>, <code>whatsapp_phone_id</code></td></tr>
+  <tr><td>Webhooks de leads/WhatsApp</td><td><code>webhook_token</code>, <code>webhook_verify_token</code></td></tr>
+  <tr><td>Gemini IA</td><td><code>gemini_api_key</code>, <code>gemini_model</code></td></tr>
+  <tr><td>Automação WhatsApp</td><td><code>automation_whatsapp_template</code>, <code>automation_whatsapp_language</code></td></tr>
+  <tr><td>Evolution API</td><td><code>evolution_api_url</code>, <code>evolution_api_token</code>, <code>evolution_instance_name</code>, <code>evolution_webhook_token</code></td></tr>
+  <tr><td>Relatórios</td><td><code>report_logo</code>, <code>report_primary_color</code>, <code>report_cnpj</code>, <code>report_address</code>, <code>report_phone</code>, <code>report_footer_text</code>, <code>report_columns</code></td></tr>
+</table>
+<p>Variáveis de ambiente: <code>GEMINI_API_KEY</code> (fallback) e <code>AUTOMATION_CRON_TOKEN</code> (proteção do cron).</p>
+
+<!-- ======================= 16. AUTOMAÇÕES ======================= -->
+<h2 id="s16"><span class="num">16.</span>Automações e agendamentos</h2>
+<ul>
+  <li><strong>Cron único:</strong> <code>public/cron-automations.php?token=&lt;AUTOMATION_CRON_TOKEN&gt;</code> (idealmente a cada hora) — roda os fluxos "lead parado".</li>
+  <li><strong>Sem cron, sob demanda:</strong> alertas de leads parados (notificações) gerados ao carregar Dashboard/Agenda.</li>
+  <li><strong>Polling do navegador:</strong> notificações (45 s), chat (5 s / 18 s), atendimento WhatsApp (por conversa), badges da sidebar.</li>
+</ul>
+
+<!-- ======================= 17. DEPLOY ======================= -->
+<h2 id="s17"><span class="num">17.</span>Deploy e infraestrutura</h2>
+<ul>
+  <li>Document root = <code>public/</code>; <code>app/</code>, <code>config/</code>, <code>database/</code>, <code>storage/</code> um nível acima (fora da web).</li>
+  <li>Pastas com permissão de escrita: <code>storage/logs/</code>, <code>storage/imports/</code>, <code>public/uploads/</code> (755/775).</li>
+  <li><code>config/config.php</code>: <code>BASE_URL</code>, <code>session.cookie_secure</code>, <code>ASSET_VERSION</code> (trocar ao publicar CSS/JS — cache de 7 dias da Hostinger).</li>
+  <li><code>config/database.php</code>: credenciais MySQL.</li>
+  <li>Pre-requisitos: <code>php -l</code> em todos os arquivos e teste end-to-end (SMTP, WhatsApp, webhooks).</li>
+</ul>
+<div class="callout err"><strong>Bug de infraestrutura Hostinger conhecido:</strong> a CDN com compressão zstd pode corromper respostas PHP dinâmicas grandes (HTTP 500 em telas específicas) — é do lado da hospedagem; abrir chamado no suporte. Arquivos estáticos (ex.: GeoJSON) não são afetados.</div>
+
+<!-- ======================= 18. LIMITAÇÕES ======================= -->
+<h2 id="s18"><span class="num">18.</span>Limitações conhecidas e pendências</h2>
+<ol>
+  <li><strong>Sem tempo real (WebSocket):</strong> chat e atendimento usam polling (até ~5 s) — decisão para hospedagem compartilhada.</li>
+  <li><strong>Push Web verdadeiro</strong> (navegador fechado) requer provedor Web Push/VAPID — infra não implementada; notificações internas continuam funcionando.</li>
+  <li><strong>Importação de <code>.xlsx</code></strong> não suportada sem Composer — usar CSV.</li>
+  <li><strong>Data de fechamento do lead</strong> aproximada por <code>updated_at</code> (falta coluna <code>closed_at</code>).</li>
+  <li><strong>Contatos <code>@lid</code></strong> (anúncio) não expõem número em nenhuma API da Meta — preenchimento manual.</li>
+  <li><strong>Upload de arquivos no Chat</strong> não implementado (só texto).</li>
+  <li><strong>Crawler</strong> aceita apenas HTTPS sem credenciais/porta (por segurança).</li>
+  <li><strong>Admin inicial</strong> vem do seed (trocar a senha padrão em produção).</li>
+  <li>Testes end-to-end das integrações dependem de credenciais reais em produção.</li>
+</ol>
+
+<!-- ======================= 19. ECOSSISTEMA ======================= -->
+<h2 id="s19"><span class="num">19.</span>Diagrama do ecossistema</h2>
+<pre><code>                ┌────────────────────────────────────────────┐
+                │            PONTAS DE ENTRADA                │
+                │  Meta Ads  Google Ads  Genérico  WhatsApp   │
+                │  └─────── webhooks públicos (token) ───────┘
+                │        Evolution API (mensagens/QR/etiquetas)
+                └──────────────────────┬─────────────────────┘
+                                       ▼
+                        ┌─────────────────────────────┐
+                        │     leads  +  lead_history   │◄── atribuição/notificação
+                        └─────────────┬───────────────┘
+         ┌──────────────┬─────────────┼──────────────┬────────────────┐
+         ▼              ▼             ▼              ▼                ▼
+      Pipeline      Agenda/MeuDia   SLA          Relatórios      Indicadores
+      (Kanban)      (contatos)   (1ª resposta)  (CSV/Excel/PDF)  (mapa/heatmap)
+         │              │             │              │
+         ▼              ▼             ▼              ▼
+      LeadScore ──► Dashboard ──► Insights ──► Importação CSV
+      (auto 0-100) (KPIs/gráficos) (ação)      (lead_code)
+         │
+         ├──► Tarefas ──► Agenda (sincronização opcional) ──► Metas
+         ├──► Chat interno (departamentos) ──► Notificações
+         ├──► Atendimento WhatsApp (Evolution) ──► cria lead/tarefa, transfere
+         ├──► Calendário (eventos + vínculo lead/tarefa)
+         ├──► Documentos e Wiki (crawler + IA) ──► Assistente Gemini
+         ├──► Whiteboards (colaboração)
+         └──► Automações (lead parado → ações) ──► cron
+                └──────────────► ActivityLog (auditoria) / Notificações
+
+        Serviços externos: SMTP (e-mails) · WhatsApp Cloud (templates)
+                           · Gemini (IA) · Evolution API (WhatsApp)</code></pre>
+
+<h3>19.1 Fluxo de dados típico</h3>
+<ol>
+  <li>O lead entra por um <strong>webhook</strong> (Meta/Google/genérico), <strong>cadastro manual</strong> ou <strong>importação CSV</strong>.</li>
+  <li>O sistema gera o <code>lead_code</code>, calcula o <strong>Lead Score</strong> e registra o histórico.</li>
+  <li>O lead aparece no <strong>Pipeline</strong>, <strong>Agenda</strong>, <strong>Dashboard</strong> e nos <strong>Indicadores</strong>.</li>
+  <li>A equipe trabalha via <strong>tarefas</strong>, <strong>chat</strong>, <strong>atendimento WhatsApp</strong> e <strong>agendamentos</strong>.</li>
+  <li>Os dados alimentam <strong>SLA</strong>, <strong>relatórios</strong>, <strong>metas</strong>, <strong>insights</strong> e <strong>automações</strong>.</li>
+  <li>Tudo é auditado em <code>activity_log</code> e <code>lead_history</code>, com notificações internas ao longo do processo.</li>
+</ol>
+
+<div class="foot">
+  <p>Titanium CRM — Relatório completo do sistema · Gerado em 06/08/2026</p>
+  <p>Documentação complementar (instalação passo a passo): <code>README.md</code></p>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "titanium-crm-production",
+      "url": "https://azure-eel-382308.hostingersite.com"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+# Credenciais gravadas pelo setup.php em cada servidor.
+config/database.local.php
