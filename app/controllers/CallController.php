@@ -111,9 +111,15 @@ final class CallController extends Controller
         flush();
 
         try {
-            require_once ROOT_PATH . '/ligacao/bootstrap.php';
-            app_factory()->analysis()->run($externalId, $this->input('force', '0') === '1');
-            $this->service()->importCachedAnalysis((int) $id, ROOT_PATH . '/ligacao/storage/analyses');
+            $service = $this->service();
+            try {
+                require_once ROOT_PATH . '/ligacao/bootstrap.php';
+                app_factory()->analysis()->run($externalId, $this->input('force', '0') === '1');
+                $service->importCachedAnalysis((int) $id, ROOT_PATH . '/ligacao/storage/analyses');
+            } catch (Throwable $primaryError) {
+                error_log('CallController::primaryAnalysis ' . $primaryError->getMessage());
+                $service->reanalyze((int) $id);
+            }
             echo json_encode(['success' => true, 'redirect' => url('ligacoes/' . $id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Throwable $error) {
             error_log('CallController::analyze ' . $error->getMessage());
@@ -123,10 +129,19 @@ final class CallController extends Controller
                 'AI_NOT_CONFIGURED' => 'Configure a chave da IA utilizada pelo módulo de ligações.',
                 'AI_RATE_LIMIT' => 'A IA atingiu o limite temporário. Tente novamente em alguns minutos.',
                 'AI_ANALYSIS_FAILED' => 'A IA não conseguiu concluir o relatório desta gravação.',
+                'AI_ANALYSIS_NETWORK_FAILED' => 'A IA não respondeu dentro do prazo. Tente novamente.',
                 'API4COM_AUTH_FAILED' => 'O token da Api4Com foi rejeitado.',
+                'API4COM_SYNC_FAILED' => 'A Api4Com não respondeu ao consultar esta ligação.',
+                'API4COM_UNAVAILABLE' => 'A Api4Com está temporariamente indisponível.',
                 'CALL_NOT_FOUND' => 'A ligação não foi encontrada na Api4Com.',
+                'INVALID_RECORDING_URL' => 'O endereço da gravação retornado pela Api4Com é inválido.',
+                'RECORDING_DOWNLOAD_FAILED' => 'A gravação não pôde ser baixada da Api4Com.',
+                'RECORDING_STORAGE_UNAVAILABLE' => 'A hospedagem não permitiu gravar o arquivo de áudio.',
+                'RECORDING_STORE_FAILED' => 'A hospedagem não permitiu armazenar a gravação.',
+                'ANALYSIS_STORAGE_FAILED' => 'A hospedagem não permitiu salvar o relatório da análise.',
+                'HTTP_REQUEST_FAILED' => 'A hospedagem não conseguiu se comunicar com a Api4Com ou com a IA.',
             ];
-            echo json_encode(['success' => false, 'message' => $messages[$code] ?? 'Não foi possível concluir a análise. Consulte o log PHP.'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            echo json_encode(['success' => false, 'message' => ($messages[$code] ?? 'Não foi possível concluir a análise.') . ' Código: ' . preg_replace('/[^A-Z0-9_]/', '', strtoupper((string) $code))], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
         exit;
     }
@@ -185,7 +200,7 @@ final class CallController extends Controller
                 $call = (new CallRecordingArchive(Database::getInstance(), $config))->archive((int) $id);
             } catch (Throwable $error) {
                 error_log('CallController::audio ' . $error->getMessage());
-                http_response_code(404);
+                $this->streamRemote($call);
                 return;
             }
         }
@@ -194,7 +209,7 @@ final class CallController extends Controller
         $root = realpath(STORAGE_PATH . '/calls');
         $path = realpath(STORAGE_PATH . '/calls/' . ltrim(str_replace('\\', '/', $relative), '/'));
         if (!$root || !$path || !str_starts_with(strtolower($path), strtolower($root . DIRECTORY_SEPARATOR)) || !is_file($path)) {
-            http_response_code(404);
+            $this->streamRemote($call);
             return;
         }
         $size = filesize($path);
@@ -226,5 +241,40 @@ final class CallController extends Controller
         }
         fclose($handle);
         exit;
+    }
+
+    private function streamRemote(array $call): void
+    {
+        $externalId = (string) ($call['external_id'] ?? '');
+        if (!preg_match('/^[A-Za-z0-9._:-]{1,160}$/', $externalId)) {
+            http_response_code(404);
+            return;
+        }
+        $started = false;
+        try {
+            require_once ROOT_PATH . '/ligacao/bootstrap.php';
+            app_factory()->recordings()->stream(
+                $externalId,
+                isset($_SERVER['HTTP_RANGE']) ? (string) $_SERVER['HTTP_RANGE'] : null,
+                function (int $status, array $headers) use (&$started): void {
+                    if ($status < 200 || $status >= 300) return;
+                    $started = true;
+                    http_response_code($status);
+                    header('Cache-Control: private, max-age=300');
+                    header('X-Content-Type-Options: nosniff');
+                    foreach (['content-type'=>'Content-Type','content-length'=>'Content-Length','content-range'=>'Content-Range','accept-ranges'=>'Accept-Ranges'] as $source=>$target) {
+                        if (isset($headers[$source])) header($target . ': ' . str_replace(["\r", "\n"], '', (string) $headers[$source]));
+                    }
+                },
+                static function (string $chunk): void {
+                    echo $chunk;
+                    flush();
+                }
+            );
+            exit;
+        } catch (Throwable $error) {
+            error_log('CallController::streamRemote ' . $error->getMessage());
+            if (!$started) http_response_code(404);
+        }
     }
 }
