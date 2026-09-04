@@ -43,7 +43,7 @@ define('ASSET_VERSION', '2026081712');
 // URL base da aplicação (SEM barra no final)
 // Exemplo local: http://localhost/leads/public
 // Exemplo Hostinger: https://seudominio.com.br
-define('BASE_URL', 'https://azure-eel-382308.hostingersite.com');
+define('BASE_URL', 'https://crm.titaniumconsultorias.com.br');
 
 // Caminhos absolutos do sistema de arquivos
 define('ROOT_PATH', dirname(__DIR__));
