@@ -70,7 +70,8 @@ function tc_agenda_section(string $title, string $icon, string $color, array $it
      data-csrf-token="<?= e(Csrf::token()) ?>"
      data-search-url="<?= e(url('leads/buscar-rapido')) ?>"
      data-schedule-url="<?= e(url('agenda/agendar')) ?>"
-     data-quick-contact-url-base="<?= e(url('agenda')) ?>">
+     data-quick-contact-url-base="<?= e(url('agenda')) ?>"
+     data-min-observation-characters="<?= (int) $minimumObservationCharacters ?>">
 
 <div class="d-flex justify-content-end mb-3">
     <button type="button" class="btn btn-tc-primary" id="tcAgendaNewBtn">

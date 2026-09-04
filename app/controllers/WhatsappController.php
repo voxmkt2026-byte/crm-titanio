@@ -62,6 +62,7 @@ class WhatsappController extends Controller
 
         if ($result['success']) {
             $this->historyModel->add($leadId, Auth::id(), 'whatsapp', 'Mensagem enviada via WhatsApp: "' . $message . '"');
+            $this->leadModel->update($leadId, ['last_contact_at' => date('Y-m-d H:i:s')]);
             log_activity('whatsapp_enviado', 'Mensagem WhatsApp enviada ao lead #' . $leadId . '.');
         }
 

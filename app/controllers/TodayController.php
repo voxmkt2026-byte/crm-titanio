@@ -21,6 +21,8 @@ require_once APP_PATH . '/core/Controller.php';
 require_once APP_PATH . '/core/Database.php';
 require_once APP_PATH . '/models/Task.php';
 require_once APP_PATH . '/models/UserGoal.php';
+require_once APP_PATH . '/models/Setting.php';
+require_once APP_PATH . '/services/Leads/LeadActivityMetrics.php';
 
 class TodayController extends Controller
 {
@@ -39,6 +41,16 @@ class TodayController extends Controller
         $this->requireLogin();
 
         $userId = (int) Auth::id();
+        $settings = new Setting();
+        $inactivityDays = max(1, min(365, (int) $settings->get('lead_inactivity_days', 5)));
+        $minimumObservationCharacters = max(50, min(500, (int) $settings->get('lead_interaction_min_chars', 50)));
+        $metrics = new LeadActivityMetrics($this->db);
+        $dailyProductivity = $metrics->dailyBySeller(date('Y-m-d'), $userId)[0] ?? [
+            'updated_leads' => 0,
+            'interactions' => 0,
+            'active_leads' => 0,
+        ];
+        $staleLeadCount = $metrics->staleCount($inactivityDays, $userId);
 
         // ---- Leads atrasados (mesmo critério da Agenda: next_contact_at no passado) ----
         $stmt = $this->db->prepare(
@@ -125,6 +137,10 @@ class TodayController extends Controller
             'leadsWithoutContact' => $leadsWithoutContact,
             'combined'            => $combined,
             'goalProgress'        => $goalProgress,
+            'dailyProductivity'   => $dailyProductivity,
+            'staleLeadCount'      => $staleLeadCount,
+            'inactivityDays'      => $inactivityDays,
+            'minimumObservationCharacters' => $minimumObservationCharacters,
         ]);
     }
 }

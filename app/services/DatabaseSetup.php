@@ -68,6 +68,8 @@ class DatabaseSetup
             ['name' => '123_evolution_instances', 'file' => 'database/sql/migration_evolution_inbox_v3.sql', 'label' => 'Múltiplas linhas e fluxos'],
             ['name' => '130_goals_by_function', 'file' => 'database/sql/migration_goals_by_function.sql', 'label' => 'Metas por função'],
             ['name' => '131_templates_multichannel', 'file' => 'database/sql/migration_templates_multichannel.sql', 'label' => 'Templates de WhatsApp e e-mail'],
+            ['name' => '140_calls', 'file' => 'database/sql/migration_calls.sql', 'label' => 'Ligações Api4Com e análises'],
+            ['name' => '150_lead_governance', 'file' => 'database/sql/migration_lead_governance.sql', 'label' => 'Governança de interações com leads'],
         ]);
     }
 

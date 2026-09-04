@@ -25,6 +25,7 @@ class SettingController extends Controller
         'whatsapp_token', 'whatsapp_phone_id', 'automation_whatsapp_template', 'automation_whatsapp_language', 'webhook_token',
         'gemini_api_key', 'gemini_model',
         'evolution_api_url', 'evolution_api_token', 'evolution_instance_name', 'evolution_webhook_token',
+        'lead_interaction_min_chars', 'lead_inactivity_days',
     ];
 
     public function __construct()
@@ -179,6 +180,14 @@ class SettingController extends Controller
             }
             $data[$field] = $value;
         }
+        $data['lead_interaction_min_chars'] = (string) max(
+            50,
+            min(500, (int) $this->input('lead_interaction_min_chars', 50))
+        );
+        $data['lead_inactivity_days'] = (string) max(
+            1,
+            min(365, (int) $this->input('lead_inactivity_days', 5))
+        );
 
         $logo = $this->handleImageUpload('company_logo', 'logo');
         if ($logo !== null) {

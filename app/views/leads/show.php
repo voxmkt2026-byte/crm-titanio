@@ -124,9 +124,11 @@ $historyIcons = [
                      (action=leads/{id}/note) mantido caso o JS não carregue. -->
                 <form method="POST" action="<?= e(url('leads/' . $lead['id'] . '/note')) ?>"
                       class="tc-quick-note-form" data-ajax-url="<?= e(url('leads/' . $lead['id'] . '/nota-rapida')) ?>"
-                      data-csrf-token="<?= e(Csrf::token()) ?>">
+                      data-csrf-token="<?= e(Csrf::token()) ?>"
+                      data-min-observation-characters="<?= (int) $minimumObservationCharacters ?>">
                     <?= Csrf::field() ?>
-                    <textarea name="note" class="form-control mb-2" rows="3" placeholder="Escreva uma observação..." required></textarea>
+                    <textarea name="note" class="form-control mb-1" rows="3" placeholder="Descreva o contato, resultado e próximo passo..." required minlength="<?= (int) $minimumObservationCharacters ?>"></textarea>
+                    <div class="form-text mb-2">Mínimo de <?= (int) $minimumObservationCharacters ?> caracteres.</div>
                     <button type="submit" class="btn btn-tc-primary btn-sm w-100">
                         <i class="fa-solid fa-paper-plane me-1"></i> Registrar
                     </button>
@@ -290,4 +292,17 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>';
 ?>
+<?php endif; ?>
+<?php if (!empty($leadCalls)): ?>
+<div class="card mt-4">
+    <div class="card-header"><h2 class="h5 mb-0"><i class="fa-solid fa-phone-volume me-2"></i>Ligações</h2></div>
+    <div class="list-group list-group-flush">
+        <?php foreach ($leadCalls as $leadCall): ?>
+        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="<?= e(url('ligacoes/' . $leadCall['id'])) ?>">
+            <span><strong><?= e(format_datetime($leadCall['started_at'])) ?></strong><br><small class="text-muted"><?= e($leadCall['agent_name'] ?: 'Atendente não identificado') ?> · <?= e(gmdate('i:s', (int) $leadCall['duration'])) ?></small></span>
+            <span class="badge bg-primary"><?= isset($leadCall['overall_score']) ? (int) $leadCall['overall_score'] . '/10' : 'Processando' ?></span>
+        </a>
+        <?php endforeach; ?>
+    </div>
+</div>
 <?php endif; ?>

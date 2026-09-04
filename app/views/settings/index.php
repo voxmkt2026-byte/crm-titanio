@@ -45,6 +45,26 @@ $s = fn($key, $default = '') => e($settings[$key] ?? $default);
     </div>
 
     <div class="tc-card mb-3">
+        <div class="tc-card-header"><i class="fa-solid fa-clipboard-check me-1"></i> Governança comercial</div>
+        <div class="tc-card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Mínimo de caracteres por observação</label>
+                    <input type="number" name="lead_interaction_min_chars" class="form-control"
+                           min="50" max="500" value="<?= $s('lead_interaction_min_chars', '50') ?>" required>
+                    <div class="form-text">Aplicado a contatos e justificativas de perda registrados manualmente.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Dias para considerar um lead sem movimentação</label>
+                    <input type="number" name="lead_inactivity_days" class="form-control"
+                           min="1" max="365" value="<?= $s('lead_inactivity_days', '5') ?>" required>
+                    <div class="form-text">Usado nos alertas, no Meu Dia e nos indicadores de produtividade.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tc-card mb-3">
         <div class="tc-card-header"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> Assistente Gemini IA</div>
         <div class="tc-card-body">
             <div class="row g-3 align-items-end">

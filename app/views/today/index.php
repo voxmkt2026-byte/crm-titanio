@@ -7,6 +7,21 @@
  */
 ?>
 
+<div class="tc-insight-card mb-3" style="border-left:4px solid <?= $staleLeadCount > 0 ? 'var(--tc-warning)' : 'var(--tc-success)' ?>;">
+    <i class="fa-solid fa-clipboard-check"></i>
+    <span>
+        Hoje você atualizou <strong><?= (int) $dailyProductivity['updated_leads'] ?> lead(s)</strong>
+        em <?= (int) $dailyProductivity['interactions'] ?> interação(ões).
+        <?php if ($staleLeadCount > 0): ?>
+            <a href="<?= e(url('leads?' . http_build_query(['sem_movimentacao_dias' => $inactivityDays, 'view' => 'mine']))) ?>">
+                <?= (int) $staleLeadCount ?> lead(s) estão sem movimentação há <?= (int) $inactivityDays ?>+ dias.
+            </a>
+        <?php else: ?>
+            Nenhum lead sob sua responsabilidade está fora do prazo de atualização.
+        <?php endif; ?>
+    </span>
+</div>
+
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-4">
         <a href="<?= e(url('agenda')) ?>" class="text-decoration-none">
@@ -143,6 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var csrfToken = ' . json_encode(Csrf::token()) . ';
     var quickContactUrlBase = ' . json_encode(url('agenda')) . ';
     var taskStatusUrlBase = ' . json_encode(url('tarefas')) . ';
+    var minimumCharacters = ' . (int) $minimumObservationCharacters . ';
 
     document.querySelectorAll(".tc-today-quick-contact").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -161,17 +177,23 @@ document.addEventListener("DOMContentLoaded", function () {
                         "<option value=\"ligacao\">Ligação</option>" +
                         "<option value=\"whatsapp\">WhatsApp</option>" +
                     "</select>" +
-                    "<textarea id=\"tcTodayQuickDescription\" class=\"form-control mb-2\" rows=\"3\" placeholder=\"O que foi tratado no contato?\"></textarea>" +
+                    "<textarea id=\"tcTodayQuickDescription\" class=\"form-control mb-1\" rows=\"3\" minlength=\"" + minimumCharacters + "\" placeholder=\"O que foi tratado no contato?\"></textarea>" +
+                    "<div class=\"text-muted text-start mb-2\" style=\"font-size:.75rem;\"><span id=\"tcTodayQuickCount\">0</span>/" + minimumCharacters + " caracteres mínimos</div>" +
                     "<label class=\"form-label mb-1\" style=\"font-size:0.8rem;\">Próximo contato (opcional)</label>" +
                     "<input type=\"datetime-local\" id=\"tcTodayQuickNext\" class=\"form-control\">",
                 showCancelButton: true,
                 confirmButtonText: "Registrar",
                 cancelButtonText: "Cancelar",
                 focusConfirm: false,
+                didOpen: function () {
+                    var field = document.getElementById("tcTodayQuickDescription");
+                    var counter = document.getElementById("tcTodayQuickCount");
+                    field.addEventListener("input", function () { counter.textContent = Array.from(field.value.trim()).length; });
+                },
                 preConfirm: function () {
                     var description = document.getElementById("tcTodayQuickDescription").value.trim();
-                    if (!description) {
-                        Swal.showValidationMessage("Descreva o que foi tratado no contato.");
+                    if (Array.from(description).length < minimumCharacters) {
+                        Swal.showValidationMessage("A observação deve conter pelo menos " + minimumCharacters + " caracteres.");
                         return false;
                     }
                     return {

@@ -21,6 +21,7 @@
         var quickContactUrlBase = app.getAttribute('data-quick-contact-url-base');
         var searchUrl = app.getAttribute('data-search-url');
         var scheduleUrl = app.getAttribute('data-schedule-url');
+        var minimumCharacters = Math.max(50, parseInt(app.getAttribute('data-min-observation-characters') || '50', 10));
 
         document.querySelectorAll('.tc-agenda-quick-contact').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -39,17 +40,23 @@
                             '<option value="ligacao">Ligação</option>' +
                             '<option value="whatsapp">WhatsApp</option>' +
                         '</select>' +
-                        '<textarea id="tcQuickDescription" class="form-control mb-2" rows="3" placeholder="O que foi tratado no contato?"></textarea>' +
+                        '<textarea id="tcQuickDescription" class="form-control mb-1" rows="3" minlength="' + minimumCharacters + '" placeholder="O que foi tratado no contato?"></textarea>' +
+                        '<div class="text-muted text-start mb-2" style="font-size:.75rem;"><span id="tcQuickDescriptionCount">0</span>/' + minimumCharacters + ' caracteres mínimos</div>' +
                         '<label class="form-label mb-1" style="font-size:0.8rem;">Próximo contato (opcional - deixe vazio para não reagendar)</label>' +
                         '<input type="datetime-local" id="tcQuickNext" class="form-control">',
                     showCancelButton: true,
                     confirmButtonText: 'Registrar',
                     cancelButtonText: 'Cancelar',
                     focusConfirm: false,
+                    didOpen: function () {
+                        var field = document.getElementById('tcQuickDescription');
+                        var counter = document.getElementById('tcQuickDescriptionCount');
+                        field.addEventListener('input', function () { counter.textContent = Array.from(field.value.trim()).length; });
+                    },
                     preConfirm: function () {
                         var description = document.getElementById('tcQuickDescription').value.trim();
-                        if (!description) {
-                            Swal.showValidationMessage('Descreva o que foi tratado no contato.');
+                        if (Array.from(description).length < minimumCharacters) {
+                            Swal.showValidationMessage('A observação deve conter pelo menos ' + minimumCharacters + ' caracteres.');
                             return false;
                         }
                         return {

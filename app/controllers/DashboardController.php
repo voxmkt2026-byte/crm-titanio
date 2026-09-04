@@ -7,6 +7,9 @@ require_once APP_PATH . '/core/Controller.php';
 require_once APP_PATH . '/core/Database.php';
 require_once APP_PATH . '/models/Lead.php';
 require_once APP_PATH . '/models/Notification.php';
+require_once APP_PATH . '/models/User.php';
+require_once APP_PATH . '/models/Setting.php';
+require_once APP_PATH . '/services/Leads/LeadActivityMetrics.php';
 require_once APP_PATH . '/helpers/insights.php';
 
 class DashboardController extends Controller
@@ -21,10 +24,16 @@ class DashboardController extends Controller
     public function index(): void
     {
         $this->requireLogin();
+        $settings = new Setting();
+        $inactivityDays = max(1, min(365, (int) $settings->get('lead_inactivity_days', 5)));
+        $canViewAll = Auth::hasRole(['admin', 'supervisor']);
+        $selectedSellerId = $canViewAll ? (int) $this->input('seller_id', 0) : (int) Auth::id();
+        $sellerFilter = $selectedSellerId > 0 ? $selectedSellerId : null;
+        $metrics = new LeadActivityMetrics(Database::getInstance());
 
         // Notificações (Fase 3): gera alertas de lead parado sob demanda, sem cron.
         try {
-            (new Notification())->generateStaleLeadAlerts(5);
+            (new Notification())->generateStaleLeadAlerts($inactivityDays);
         } catch (Throwable $e) {
             error_log('DashboardController - falha ao gerar notificações de lead parado: ' . $e->getMessage());
         }
@@ -46,7 +55,9 @@ class DashboardController extends Controller
         $lost        = $leadModel->countByStatuses($lostStatuses);
         $inProgress  = $leadModel->countByStatuses($inProgressStatuses);
         $closed      = $leadModel->countByStatuses($closedStatuses);
-        $withoutContact = $leadModel->countWithoutContact(5);
+        $withoutContact = $metrics->staleCount($inactivityDays, $sellerFilter);
+        $productivity = $metrics->dailyBySeller(date('Y-m-d'), $sellerFilter);
+        $lossSummary = $metrics->lossesBySeller(date('Y-m-d', strtotime('-29 days')), date('Y-m-d'), $sellerFilter);
 
         $conversionRate = $totalLeads > 0 ? round(($closed / $totalLeads) * 100, 1) : 0.0;
 
@@ -85,13 +96,18 @@ class DashboardController extends Controller
         if ($withoutContact > 0) {
             $baseInsights[] = [
                 'text' => sprintf(
-                    '%d lead%s sem nenhum contato há mais de 5 dias.',
+                    '%d lead%s sem movimentação há mais de %d dias.',
                     $withoutContact,
-                    $withoutContact > 1 ? 's estão' : ' está'
+                    $withoutContact > 1 ? 's estão' : ' está',
+                    $inactivityDays
                 ),
                 // Insight acionável (Fase 5): clique leva para a listagem de
                 // Leads já filtrada, mostrando exatamente quais são esses leads.
-                'url' => url('leads?sem_contato_dias=5'),
+                'url' => url('leads?' . http_build_query([
+                    'sem_movimentacao_dias' => $inactivityDays,
+                    'view' => $canViewAll ? 'all' : 'mine',
+                    'assigned_to' => $sellerFilter,
+                ])),
             ];
         }
 
@@ -112,6 +128,12 @@ class DashboardController extends Controller
             'byState'   => $byState,
             'byStatus'  => $byStatus,
             'insights'  => $insights,
+            'productivity' => $productivity,
+            'lossSummary' => $lossSummary,
+            'inactivityDays' => $inactivityDays,
+            'canViewAll' => $canViewAll,
+            'users' => (new User())->allActive(),
+            'selectedSellerId' => $selectedSellerId,
         ]);
     }
 

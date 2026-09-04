@@ -123,6 +123,7 @@ class EvolutionInboxController extends Controller
                     ->execute([':id'=>$id,':msg'=>$content]);
             }
             if(!empty($link['lead_id']))$this->db->prepare("INSERT INTO lead_history(lead_id,user_id,type,description) VALUES(:lead,:uid,'whatsapp',:description)")->execute([':lead'=>$link['lead_id'],':uid'=>$userId,':description'=>($isPrivate?'Nota interna no atendimento WhatsApp: ':'Mensagem enviada via WhatsApp: ').$content]);
+            if(!$isPrivate&&!empty($link['lead_id']))$this->db->prepare("UPDATE leads SET last_contact_at=NOW() WHERE id=:id")->execute([':id'=>(int)$link['lead_id']]);
             $this->json(['success'=>true,'message'=>['id'=>$insertedId,'time'=>date('H:i')]]);
         }catch(Throwable $e){$this->json(['success'=>false,'message'=>$e->getMessage()],422);}
     }
@@ -160,6 +161,8 @@ class EvolutionInboxController extends Controller
                     ':lead' => (int) $link['lead_id'], ':uid' => Auth::id(),
                     ':description' => 'E-mail enviado pelo Atendimento WhatsApp para ' . $to . '. Assunto: ' . $subject,
                 ]);
+            $this->db->prepare("UPDATE leads SET last_contact_at=NOW() WHERE id=:id")
+                ->execute([':id' => (int) $link['lead_id']]);
         } catch (Throwable $e) {
             error_log('EvolutionInboxController::sendEmail history - ' . $e->getMessage());
         }

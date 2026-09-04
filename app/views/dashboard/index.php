@@ -19,6 +19,24 @@ $statusLabels = array_map(fn($r) => status_label($r['status']), $byStatus);
 $statusValues = array_map(fn($r) => (int) $r['total'], $byStatus);
 ?>
 
+<?php if ($canViewAll): ?>
+<div class="tc-card mb-3">
+    <div class="tc-card-body">
+        <form method="GET" action="<?= e(url('dashboard')) ?>" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Filtrar produtividade por vendedor</label>
+                <select name="seller_id" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos os vendedores</option>
+                    <?php foreach ($users as $user): ?>
+                        <option value="<?= (int) $user['id'] ?>" <?= $selectedSellerId === (int) $user['id'] ? 'selected' : '' ?>><?= e($user['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- KPIs -->
 <div class="row g-3 mb-4 tc-personalizable-widgets" id="tcDashboardWidgets" data-save-url="<?= e(url('workspace/preferencias')) ?>" data-csrf="<?= e(Csrf::token()) ?>">
     <div class="col-6 col-md-4 col-xl-3">
@@ -98,16 +116,56 @@ $statusValues = array_map(fn($r) => (int) $r['total'], $byStatus);
 <?php if (!empty($kpis['without_contact'])): ?>
 <div class="row g-3 mb-4">
     <div class="col-12">
-        <a href="<?= e(url('leads?sem_contato_dias=5')) ?>" class="tc-kpi-card d-flex text-decoration-none text-reset" style="border-left: 4px solid var(--tc-danger); cursor: pointer;" title="Ver esses leads na listagem">
+        <a href="<?= e(url('leads?' . http_build_query(['sem_movimentacao_dias' => $inactivityDays, 'view' => $canViewAll ? 'all' : 'mine', 'assigned_to' => $selectedSellerId ?: null]))) ?>" class="tc-kpi-card d-flex text-decoration-none text-reset" style="border-left: 4px solid var(--tc-danger); cursor: pointer;" title="Ver esses leads na listagem">
             <div class="tc-kpi-icon" style="background: linear-gradient(135deg,#dc2626,#f87171);"><i class="fa-solid fa-clock"></i></div>
             <div>
                 <div class="tc-kpi-value"><?= (int) $kpis['without_contact'] ?></div>
-                <div class="tc-kpi-label">Leads sem contato há mais de 5 dias <i class="fa-solid fa-arrow-right ms-1" style="font-size:0.7rem;"></i></div>
+                <div class="tc-kpi-label">Leads sem movimentação há <?= (int) $inactivityDays ?>+ dias <i class="fa-solid fa-arrow-right ms-1" style="font-size:0.7rem;"></i></div>
             </div>
         </a>
     </div>
 </div>
 <?php endif; ?>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-7">
+        <div class="tc-card h-100">
+            <div class="tc-card-header"><i class="fa-solid fa-chart-column me-2"></i>Produtividade de hoje</div>
+            <div class="table-responsive">
+                <table class="table tc-table mb-0">
+                    <thead><tr><th>Vendedor</th><th>Leads atualizados</th><th>Interações</th><th>Leads ativos</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($productivity as $row): ?>
+                        <tr>
+                            <td class="fw-semibold"><?= e($row['user_name']) ?></td>
+                            <td><?= (int) $row['updated_leads'] ?></td>
+                            <td><?= (int) $row['interactions'] ?></td>
+                            <td><?= (int) $row['active_leads'] ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (empty($productivity)): ?><tr><td colspan="4" class="text-muted text-center">Nenhum vendedor encontrado.</td></tr><?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="tc-card h-100">
+            <div class="tc-card-header"><i class="fa-solid fa-circle-xmark me-2"></i>Perdas nos últimos 30 dias</div>
+            <div class="table-responsive">
+                <table class="table tc-table mb-0">
+                    <thead><tr><th>Vendedor</th><th>Motivo</th><th>Total</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($lossSummary as $row): ?>
+                        <tr><td><?= e($row['user_name'] ?: 'Não atribuído') ?></td><td><?= e($row['reason_name']) ?></td><td><?= (int) $row['total'] ?></td></tr>
+                    <?php endforeach; ?>
+                    <?php if (empty($lossSummary)): ?><tr><td colspan="3" class="text-muted text-center">Nenhuma perda no período.</td></tr><?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Insights automáticos (Fase 2: motor mais completo em app/helpers/insights.php) -->
 <?php if (!empty($insights)): ?>

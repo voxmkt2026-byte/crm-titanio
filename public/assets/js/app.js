@@ -439,6 +439,13 @@
 
         var moveUrl = board.getAttribute('data-move-url');
         var csrfToken = board.getAttribute('data-csrf-token');
+        var minimumCharacters = Math.max(50, parseInt(board.getAttribute('data-min-observation-characters') || '50', 10));
+        var lossReasons = [];
+        try {
+            lossReasons = JSON.parse(board.getAttribute('data-loss-reasons') || '[]');
+        } catch (ignore) {
+            lossReasons = [];
+        }
         var leadModalEl = document.getElementById('tcPipelineLeadModal');
         var leadModal = leadModalEl && window.bootstrap ? new window.bootstrap.Modal(leadModalEl) : null;
         var suppressCardOpenUntil = 0;
@@ -541,6 +548,41 @@
             stageNames.push(col.getAttribute('data-stage-name'));
         });
 
+        function requestLossDetails() {
+            if (typeof Swal === 'undefined') return Promise.resolve(null);
+            var options = lossReasons.map(function (reason) {
+                return '<option value="' + Number(reason.id) + '">' + escapeHtml(reason.name) + '</option>';
+            }).join('');
+            return Swal.fire({
+                title: 'Justificar perda',
+                html: '<select id="tcLossReason" class="form-select mb-2"><option value="">Selecione o motivo</option>' + options + '</select>' +
+                    '<textarea id="tcLossNote" class="form-control mb-1" rows="4" placeholder="Explique o contexto da negociação e o motivo da perda."></textarea>' +
+                    '<div class="text-muted text-start" style="font-size:.75rem;"><span id="tcLossNoteCount">0</span>/' + minimumCharacters + ' caracteres mínimos</div>',
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar perda',
+                cancelButtonText: 'Cancelar',
+                focusConfirm: false,
+                didOpen: function () {
+                    var field = document.getElementById('tcLossNote');
+                    var counter = document.getElementById('tcLossNoteCount');
+                    field.addEventListener('input', function () { counter.textContent = Array.from(field.value.trim()).length; });
+                },
+                preConfirm: function () {
+                    var reason = document.getElementById('tcLossReason').value;
+                    var note = document.getElementById('tcLossNote').value.trim();
+                    if (!reason) {
+                        Swal.showValidationMessage('Selecione o motivo da perda.');
+                        return false;
+                    }
+                    if (Array.from(note).length < minimumCharacters) {
+                        Swal.showValidationMessage('A justificativa deve conter pelo menos ' + minimumCharacters + ' caracteres.');
+                        return false;
+                    }
+                    return { loss_reason_id: reason, loss_note: note };
+                }
+            }).then(function (result) { return result.isConfirmed ? result.value : null; });
+        }
+
         function moveCardTo(cardEl, stageName) {
             var targetColumn = board.querySelector('.tc-kanban-column-body[data-stage-name="' + CSS.escape(stageName) + '"]');
             if (!targetColumn) {
@@ -548,35 +590,38 @@
             }
             var leadId = cardEl.getAttribute('data-lead-id');
             var previousParent = cardEl.parentElement;
-            targetColumn.appendChild(cardEl);
+            var detailsPromise = stageName === 'Perdido' ? requestLossDetails() : Promise.resolve({});
 
-            if (typeof $ === 'undefined') {
-                return;
-            }
-
-            $.ajax({
-                url: moveUrl,
-                method: 'POST',
-                dataType: 'json',
-                data: {
-                    csrf_token: csrfToken,
-                    lead_id: leadId,
-                    stage_name: stageName
-                }
-            }).done(function (resp) {
-                if (!resp || !resp.success) {
+            detailsPromise.then(function (details) {
+                if (details === null) return;
+                targetColumn.appendChild(cardEl);
+                if (typeof $ === 'undefined') {
                     previousParent.appendChild(cardEl);
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Erro', 'Não foi possível mover o lead.', 'error');
+                    return;
+                }
+                $.ajax({
+                    url: moveUrl,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        csrf_token: csrfToken,
+                        lead_id: leadId,
+                        stage_name: stageName,
+                        loss_reason_id: details.loss_reason_id || '',
+                        loss_note: details.loss_note || ''
                     }
-                } else if (typeof Swal !== 'undefined') {
-                    Swal.fire({ icon: 'success', title: 'Lead movido!', timer: 1200, showConfirmButton: false });
-                }
-            }).fail(function () {
-                previousParent.appendChild(cardEl);
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire('Erro', 'Falha de comunicação ao mover o lead.', 'error');
-                }
+                }).done(function (resp) {
+                    if (!resp || !resp.success) {
+                        previousParent.appendChild(cardEl);
+                        if (typeof Swal !== 'undefined') Swal.fire('Erro', (resp && resp.message) || 'Não foi possível mover o lead.', 'error');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'success', title: 'Lead movido!', timer: 1200, showConfirmButton: false });
+                    }
+                }).fail(function (xhr) {
+                    previousParent.appendChild(cardEl);
+                    var message = xhr.responseJSON && xhr.responseJSON.message;
+                    if (typeof Swal !== 'undefined') Swal.fire('Erro', message || 'Falha de comunicação ao mover o lead.', 'error');
+                });
             });
         }
 
@@ -642,38 +687,8 @@
                     return;
                 }
 
-                var leadId = dragging.getAttribute('data-lead-id');
                 var stageName = column.getAttribute('data-stage-name');
-                var previousParent = dragging.parentElement;
-
-                column.appendChild(dragging);
-
-                if (typeof $ === 'undefined') {
-                    return;
-                }
-
-                $.ajax({
-                    url: moveUrl,
-                    method: 'POST',
-                    dataType: 'json',
-                    data: {
-                        csrf_token: csrfToken,
-                        lead_id: leadId,
-                        stage_name: stageName
-                    }
-                }).done(function (resp) {
-                    if (!resp || !resp.success) {
-                        previousParent.appendChild(dragging);
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire('Erro', 'Não foi possível mover o lead.', 'error');
-                        }
-                    }
-                }).fail(function () {
-                    previousParent.appendChild(dragging);
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Erro', 'Falha de comunicação ao mover o lead.', 'error');
-                    }
-                });
+                moveCardTo(dragging, stageName);
             });
         });
     }
@@ -2039,18 +2054,28 @@
 
     function tcPromptQuickNote(url, csrfToken, onSuccess) {
         if (typeof Swal === 'undefined') return;
+        var policyElement = document.getElementById('tcLeadObservationPolicy') ||
+            document.getElementById('tcKanbanBoard') ||
+            document.querySelector('.tc-quick-note-form');
+        var minimumCharacters = Math.max(50, parseInt(policyElement && policyElement.getAttribute('data-min-observation-characters') || '50', 10));
         Swal.fire({
             title: 'Nota rápida',
-            html: '<textarea id="tcQuickNoteText" class="form-control" rows="4" placeholder="Escreva uma observação..."></textarea>',
+            html: '<textarea id="tcQuickNoteText" class="form-control" rows="4" minlength="' + minimumCharacters + '" placeholder="Descreva o contato, resultado e próximo passo..."></textarea>' +
+                '<div class="text-muted text-start mt-1" style="font-size:.75rem;"><span id="tcQuickNoteCount">0</span>/' + minimumCharacters + ' caracteres mínimos</div>',
             showCancelButton: true,
             confirmButtonText: 'Registrar',
             cancelButtonText: 'Cancelar',
             focusConfirm: false,
+            didOpen: function () {
+                var field = document.getElementById('tcQuickNoteText');
+                var counter = document.getElementById('tcQuickNoteCount');
+                field.addEventListener('input', function () { counter.textContent = Array.from(field.value.trim()).length; });
+            },
             preConfirm: function () {
                 var el = document.getElementById('tcQuickNoteText');
                 var val = el ? el.value.trim() : '';
-                if (!val) {
-                    Swal.showValidationMessage('Escreva uma observação antes de registrar.');
+                if (Array.from(val).length < minimumCharacters) {
+                    Swal.showValidationMessage('A observação deve conter pelo menos ' + minimumCharacters + ' caracteres.');
                     return false;
                 }
                 return val;
@@ -2060,6 +2085,30 @@
                 tcSubmitQuickNote(url, csrfToken, result.value, onSuccess);
             }
         });
+    }
+
+    function initLeadLossPolicy() {
+        var form = document.getElementById('leadForm');
+        var status = document.getElementById('tcLeadStatus');
+        var reason = document.getElementById('tcLeadLossReason');
+        var group = document.getElementById('tcLeadLossNoteGroup');
+        var note = document.getElementById('tcLeadLossNote');
+        var counter = document.getElementById('tcLeadLossNoteCount');
+        if (!form || !status || !reason || !group || !note) return;
+        var negative = ['perdido','sem_interesse','sem_entrada','numero_invalido','nao_responde','bloqueou','duplicado'];
+        var originalStatus = form.getAttribute('data-original-status') || 'novo';
+        var originalReason = form.getAttribute('data-original-loss-reason') || '0';
+        function refresh() {
+            var isNegative = negative.indexOf(status.value) !== -1;
+            var needsNote = isNegative && (status.value !== originalStatus || reason.value !== originalReason);
+            group.classList.toggle('d-none', !isNegative);
+            reason.required = isNegative;
+            note.required = needsNote;
+        }
+        status.addEventListener('change', refresh);
+        reason.addEventListener('change', refresh);
+        note.addEventListener('input', function () { if (counter) counter.textContent = Array.from(note.value.trim()).length; });
+        refresh();
     }
 
     function initQuickNoteButtons() {
@@ -2467,6 +2516,7 @@
         safeInit('masks', initMasks);
         safeInit('duplicateCheck', initDuplicateCheck);
         safeInit('leadWizard', initLeadWizard);
+        safeInit('leadLossPolicy', initLeadLossPolicy);
         safeInit('deleteConfirm', initDeleteConfirm);
         safeInit('kanban', initKanban);
         safeInit('notifications', initNotifications);

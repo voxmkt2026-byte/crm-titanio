@@ -12,6 +12,10 @@ require_once APP_PATH . '/models/LeadHistory.php';
 require_once APP_PATH . '/models/PipelineStage.php';
 require_once APP_PATH . '/models/User.php';
 require_once APP_PATH . '/models/Notification.php';
+require_once APP_PATH . '/models/LossReason.php';
+require_once APP_PATH . '/models/Setting.php';
+require_once APP_PATH . '/services/Leads/LeadInteractionPolicy.php';
+require_once APP_PATH . '/services/Leads/LeadInteractionService.php';
 
 class PipelineController extends Controller
 {
@@ -49,6 +53,8 @@ class PipelineController extends Controller
     private PipelineStage $stageModel;
     private Notification $notificationModel;
     private PDO $db;
+    private LeadInteractionPolicy $interactionPolicy;
+    private LeadInteractionService $interactionService;
 
     public function __construct()
     {
@@ -57,6 +63,9 @@ class PipelineController extends Controller
         $this->stageModel = new PipelineStage();
         $this->notificationModel = new Notification();
         $this->db = Database::getInstance();
+        $minimum = (int) (new Setting())->get('lead_interaction_min_chars', 50);
+        $this->interactionPolicy = new LeadInteractionPolicy($minimum);
+        $this->interactionService = new LeadInteractionService($this->db, $this->interactionPolicy);
     }
 
     public function index(): void
@@ -143,6 +152,8 @@ class PipelineController extends Controller
             'assignedTo' => $assignedTo,
             'canViewAll' => $canViewAll,
             'scope'      => $scope,
+            'lossReasons' => (new LossReason())->allActive(),
+            'minimumObservationCharacters' => $this->interactionPolicy->minimumCharacters(),
         ]);
     }
 
@@ -178,15 +189,20 @@ class PipelineController extends Controller
         $newStatus = $this->stageDefaultStatus[$stageName];
         $oldStatus = $lead['status'];
 
-        $this->leadModel->updateStatus($leadId, $newStatus);
-
         if ($newStatus !== $oldStatus) {
-            $this->historyModel->add(
-                $leadId,
-                Auth::id(),
-                'status',
-                'Movido no pipeline de "' . status_label($oldStatus) . '" para "' . status_label($newStatus) . '" (coluna: ' . $stageName . ').'
-            );
+            try {
+                $this->interactionService->transitionStatus(
+                    $leadId,
+                    Auth::id(),
+                    $newStatus,
+                    ($reasonId = (int) $this->input('loss_reason_id', 0)) > 0 ? $reasonId : null,
+                    (string) $this->input('loss_note', ''),
+                    'Pipeline (coluna: ' . $stageName . ')'
+                );
+            } catch (DomainException $error) {
+                $this->json(['success' => false, 'message' => $error->getMessage()], 422);
+                return;
+            }
             log_activity('pipeline_status_alterado', 'Lead #' . $leadId . ' movido de "' . status_label($oldStatus) . '" para "' . status_label($newStatus) . '" via Kanban.');
 
             // Notificação (Fase 3) ao responsável em mudanças de status críticas

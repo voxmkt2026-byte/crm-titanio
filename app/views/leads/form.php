@@ -35,7 +35,10 @@ $currentSource = $lead['source'] ?? ($isEdit ? '' : 'cadastro_manual');
 
 <form method="POST" action="<?= e($formAction) ?>" id="leadForm"
       data-check-duplicate-url="<?= e(url('leads/check-duplicate')) ?>"
-      data-lead-id="<?= $isEdit ? (int) $lead['id'] : '' ?>">
+      data-lead-id="<?= $isEdit ? (int) $lead['id'] : '' ?>"
+      data-original-status="<?= e($lead['status'] ?? 'novo') ?>"
+      data-original-loss-reason="<?= (int) ($lead['loss_reason_id'] ?? 0) ?>"
+      data-min-observation-characters="<?= (int) $minimumObservationCharacters ?>">
     <?= Csrf::field() ?>
 
     <?php if ($isEdit && !empty($lead['lead_code'])): ?>
@@ -264,7 +267,7 @@ $currentSource = $lead['source'] ?? ($isEdit ? '' : 'cadastro_manual');
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
+                        <select name="status" class="form-select" id="tcLeadStatus">
                             <?php
                             $statusOptions = ['novo' => 'Novo','primeiro_contato' => 'Primeiro Contato','tentando_contato' => 'Tentando Contato','em_negociacao' => 'Em Negociação','documentacao' => 'Documentação','aguardando_cliente' => 'Aguardando Cliente','aguardando_aprovacao' => 'Aguardando Aprovação','aprovado' => 'Aprovado','fechado' => 'Fechado','perdido' => 'Perdido','sem_interesse' => 'Sem Interesse','sem_entrada' => 'Sem Entrada','numero_invalido' => 'Número Inválido','nao_responde' => 'Não Responde','bloqueou' => 'Bloqueou','duplicado' => 'Duplicado'];
                             $currentStatus = $lead['status'] ?? 'novo';
@@ -284,7 +287,8 @@ $currentSource = $lead['source'] ?? ($isEdit ? '' : 'cadastro_manual');
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Último contato</label>
-                        <input type="datetime-local" name="last_contact_at" class="form-control" value="<?= e($lead['last_contact_at'] ?? '') ?>">
+                        <input type="text" class="form-control" value="<?= e(format_date($lead['last_contact_at'] ?? null, true)) ?>" readonly>
+                        <div class="form-text">Atualizado automaticamente ao registrar um contato.</div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Próximo contato</label>
@@ -292,12 +296,19 @@ $currentSource = $lead['source'] ?? ($isEdit ? '' : 'cadastro_manual');
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Motivo de perda</label>
-                        <select name="loss_reason_id" class="form-select">
+                        <select name="loss_reason_id" class="form-select" id="tcLeadLossReason">
                             <option value="">-</option>
                             <?php foreach ($lossReasons as $lr): ?>
                                 <option value="<?= (int) $lr['id'] ?>" <?= (int) ($lead['loss_reason_id'] ?? 0) === (int) $lr['id'] ? 'selected' : '' ?>><?= e($lr['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+                    <div class="col-12 d-none" id="tcLeadLossNoteGroup">
+                        <label class="form-label">Justificativa da perda</label>
+                        <textarea name="loss_note" id="tcLeadLossNote" class="form-control" rows="3"
+                                  minlength="<?= (int) $minimumObservationCharacters ?>"
+                                  placeholder="Informe o motivo, contexto da negociação e o que levou ao encerramento."></textarea>
+                        <div class="form-text"><span id="tcLeadLossNoteCount">0</span>/<?= (int) $minimumObservationCharacters ?> caracteres mínimos.</div>
                     </div>
                 </div>
 

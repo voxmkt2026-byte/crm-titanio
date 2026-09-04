@@ -35,7 +35,7 @@ function tc_breadcrumb_items(string $path, string $pageTitle): array
         'leads' => ['Leads', 'leads'], 'importar' => ['Importar Leads', 'importar'],
         'pipeline' => ['Pipeline', 'pipeline'], 'agenda' => ['Agenda', 'agenda'],
         'calendario' => ['Calendário', 'calendario'], 'chat' => ['Chat Interno', 'chat'],
-        'atendimento-whatsapp' => ['Atendimento WhatsApp', 'atendimento-whatsapp'],
+        'atendimento-whatsapp' => ['Atendimento WhatsApp', 'atendimento-whatsapp'], 'ligacoes' => ['Ligações', 'ligacoes'],
         'tarefas' => ['Tarefas', 'tarefas'], 'conteudo' => ['Documentos e Wiki', 'conteudo'],
         'whiteboards' => ['Whiteboards', 'whiteboards'], 'automacoes' => ['Automações', 'automacoes'],
         'sla' => ['SLA', 'sla'], 'indicadores' => ['Indicadores', 'indicadores'],
@@ -209,6 +209,9 @@ if ($currentUser) {
             <a href="<?= e(url('atendimento-whatsapp')) ?>" class="d-flex align-items-center <?= tc_nav_active('atendimento-whatsapp', $currentPath) ?>">
                 <i class="fa-brands fa-whatsapp"></i> Atendimento WhatsApp
             </a>
+            <?php endif; ?>
+            <?php if (Auth::can('calls.view_own') || Auth::can('calls.view_all')): ?>
+            <a href="<?= e(url('ligacoes')) ?>" class="<?= tc_nav_active('ligacoes', $currentPath) ?>"><i class="fa-solid fa-phone-volume"></i> Ligações</a>
             <?php endif; ?>
             <a href="<?= e(url('tarefas')) ?>" class="d-flex align-items-center <?= tc_nav_active('tarefas', $currentPath) ?>">
                 <i class="fa-solid fa-list-check"></i> Tarefas

@@ -55,7 +55,9 @@ $tcAllUrl = url('pipeline?' . http_build_query(array_merge($tcPipelineQuery, ['v
 <div class="tc-kanban" id="tcKanbanBoard"
      data-move-url="<?= e(url('pipeline/move')) ?>"
      data-note-url-base="<?= e(url('leads')) ?>"
-     data-csrf-token="<?= e(Csrf::token()) ?>">
+     data-csrf-token="<?= e(Csrf::token()) ?>"
+     data-min-observation-characters="<?= (int) $minimumObservationCharacters ?>"
+     data-loss-reasons="<?= e(json_encode(array_map(fn($reason) => ['id' => (int) $reason['id'], 'name' => $reason['name']], $lossReasons), JSON_UNESCAPED_UNICODE)) ?>">
     <?php foreach ($columns as $col): $stage = $col['stage']; ?>
         <div class="tc-kanban-column">
             <div class="tc-kanban-column-header" style="border-bottom-color: <?= e($stage['color'] ?: '#3b82f6') ?>;">

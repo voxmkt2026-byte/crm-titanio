@@ -18,6 +18,9 @@ require_once APP_PATH . '/models/Notification.php';
 require_once APP_PATH . '/models/Lead.php';
 require_once APP_PATH . '/models/LeadHistory.php';
 require_once APP_PATH . '/models/LeadScore.php';
+require_once APP_PATH . '/models/Setting.php';
+require_once APP_PATH . '/services/Leads/LeadInteractionPolicy.php';
+require_once APP_PATH . '/services/Leads/LeadInteractionService.php';
 
 class AgendaController extends Controller
 {
@@ -34,10 +37,15 @@ class AgendaController extends Controller
     private const QUICK_CONTACT_TYPES = ['contato', 'whatsapp', 'ligacao'];
 
     private PDO $db;
+    private LeadInteractionPolicy $interactionPolicy;
+    private LeadInteractionService $interactionService;
 
     public function __construct()
     {
         $this->db = Database::getInstance();
+        $minimum = (int) (new Setting())->get('lead_interaction_min_chars', 50);
+        $this->interactionPolicy = new LeadInteractionPolicy($minimum);
+        $this->interactionService = new LeadInteractionService($this->db, $this->interactionPolicy);
     }
 
     public function index(): void
@@ -151,6 +159,7 @@ class AgendaController extends Controller
             'users'            => $userModel->allActive(),
             'assignedTo'       => $assignedTo,
             'canViewAll'       => $canViewAll,
+            'minimumObservationCharacters' => $this->interactionPolicy->minimumCharacters(),
             'counts'           => [
                 'atrasados' => count($groups['atrasados']),
                 'hoje'      => count($groups['hoje']),
@@ -190,30 +199,25 @@ class AgendaController extends Controller
             $type = 'contato';
         }
 
-        $description = trim((string) $this->input('description', ''));
-        if ($description === '') {
-            $this->json(['success' => false, 'message' => 'Descreva o que foi tratado no contato.'], 422);
-            return;
-        }
+        $description = (string) $this->input('description', '');
 
         $nextContactAt = trim((string) $this->input('next_contact_at', ''));
         $nextContactAt = $nextContactAt !== '' ? str_replace('T', ' ', $nextContactAt) : null;
 
         $typeLabels = ['contato' => 'Contato', 'whatsapp' => 'WhatsApp', 'ligacao' => 'Ligação'];
-        $historyModel = new LeadHistory();
-        $historyModel->add(
-            $leadId,
-            Auth::id(),
-            $type,
-            '(' . ($typeLabels[$type] ?? 'Contato') . ' via Agenda) ' . $description
-        );
-
-        // Se um novo próximo contato foi informado, agenda-o; senão, limpa
-        // (o compromisso que estava marcado foi cumprido agora).
-        $leadModel->update($leadId, [
-            'last_contact_at' => date('Y-m-d H:i:s'),
-            'next_contact_at' => $nextContactAt,
-        ]);
+        try {
+            $this->interactionService->recordContact(
+                $leadId,
+                Auth::id(),
+                $type,
+                $description,
+                $nextContactAt,
+                ($typeLabels[$type] ?? 'Contato') . ' via Agenda'
+            );
+        } catch (DomainException $error) {
+            $this->json(['success' => false, 'message' => $error->getMessage()], 422);
+            return;
+        }
 
         // Lead Score automático (Fase 2/5): recalcula com base no novo histórico
         (new LeadScore())->recalculateForLead($leadId);

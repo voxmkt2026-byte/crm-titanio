@@ -57,6 +57,12 @@ $router->post('leads/{id}/delete', 'LeadController@destroy');
 $router->post('leads/{id}/note', 'LeadController@addNote');
 $router->post('leads/check-duplicate', 'LeadController@checkDuplicate');
 $router->post('leads/{id}/whatsapp', 'WhatsappController@send');
+$router->get('ligacoes', 'CallController@index');
+$router->get('ligacoes/{id}', 'CallController@show');
+$router->get('ligacoes/{id}/audio', 'CallController@audio');
+$router->get('configuracoes/ligacoes', 'CallAdminController@index');
+$router->post('configuracoes/ligacoes/salvar', 'CallAdminController@save');
+$router->post('configuracoes/ligacoes/testar/{provider}', 'CallAdminController@test');
 
 // ---- Fase 7 (auditoria UX): observação rápida e ações em lote ----
 // (leads/buscar-rapido é registrada ANTES de leads/{id} logo abaixo, já que

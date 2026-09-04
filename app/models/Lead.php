@@ -159,13 +159,14 @@ class Lead extends Model
         // Leads sem contato há N dias: nunca contatados (last_contact_at NULL,
         // cadastrados há mais de N dias) OU contatados pela última vez há mais
         // de N dias, e ainda em andamento (mesmo critério de Lead::countWithoutContact()).
-        if (!empty($filters['sem_contato_dias'])) {
-            $days = (int) $filters['sem_contato_dias'];
+        $inactiveDays = $filters['sem_movimentacao_dias'] ?? ($filters['sem_contato_dias'] ?? '');
+        if ($inactiveDays !== '') {
+            $days = max(1, min(365, (int) $inactiveDays));
             $conditions[] = "(
                 (l.last_contact_at IS NULL AND l.created_at <= DATE_SUB(NOW(), INTERVAL :sem_contato_dias_1 DAY))
                 OR (l.last_contact_at IS NOT NULL AND l.last_contact_at <= DATE_SUB(NOW(), INTERVAL :sem_contato_dias_2 DAY))
             )
-            AND l.status NOT IN ('fechado','perdido','sem_interesse','sem_entrada','numero_invalido','bloqueou','duplicado')";
+            AND l.status NOT IN ('fechado','perdido','sem_interesse','sem_entrada','numero_invalido','nao_responde','bloqueou','duplicado')";
             $params[':sem_contato_dias_1'] = $days;
             $params[':sem_contato_dias_2'] = $days;
         }
@@ -297,26 +298,24 @@ class Lead extends Model
     public function generateLeadCode(): string
     {
         $prefix = 'LEAD-' . date('Ymd') . '-';
-        $count = null;
 
-        try {
-            $this->db->beginTransaction();
-            $stmt = $this->db->prepare(
-                "SELECT COUNT(*) AS total FROM leads WHERE DATE(created_at) = CURDATE() FOR UPDATE"
-            );
-            $stmt->execute();
-            $count = (int) $stmt->fetch()['total'];
-            $this->db->commit();
-        } catch (Throwable $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            error_log('Lead::generateLeadCode - fallback sem lock: ' . $e->getMessage());
-            $count = $this->countToday();
-        }
+        $stmt = $this->db->prepare(
+            "SELECT COALESCE(
+                MAX(CAST(SUBSTRING_INDEX(lead_code, '-', -1) AS UNSIGNED)),
+                0
+            )
+            FROM leads
+            WHERE lead_code LIKE :pattern"
+        );
 
-        $sequential = $count + 1;
-        return $prefix . str_pad((string) $sequential, 4, '0', STR_PAD_LEFT);
+        $stmt->execute([
+            ':pattern' => $prefix . '%',
+        ]);
+
+        $sequential = (int) $stmt->fetchColumn() + 1;
+
+        return $prefix
+            . str_pad((string) $sequential, 4, '0', STR_PAD_LEFT);
     }
 
     /**

@@ -11,6 +11,9 @@ require_once APP_PATH . '/models/Tag.php';
 require_once APP_PATH . '/models/LossReason.php';
 require_once APP_PATH . '/models/LeadScore.php';
 require_once APP_PATH . '/models/Notification.php';
+require_once APP_PATH . '/models/Setting.php';
+require_once APP_PATH . '/services/Leads/LeadInteractionPolicy.php';
+require_once APP_PATH . '/services/Leads/LeadInteractionService.php';
 
 class LeadController extends Controller
 {
@@ -20,7 +23,7 @@ class LeadController extends Controller
         'source', 'campaign', 'adset', 'ad', 'utm_source', 'utm_medium', 'utm_campaign',
         'utm_content', 'utm_term', 'interest', 'desired_value', 'has_down_payment',
         'down_payment_value', 'income_range', 'profession', 'company', 'status',
-        'last_contact_at', 'next_contact_at', 'notes', 'internal_notes', 'assigned_to',
+        'next_contact_at', 'notes', 'internal_notes', 'assigned_to',
         'lead_score', 'temperature', 'priority', 'loss_reason_id', 'closed_value',
     ];
 
@@ -28,6 +31,8 @@ class LeadController extends Controller
     private LeadHistory $historyModel;
     private LeadScore $scoreModel;
     private Notification $notificationModel;
+    private LeadInteractionPolicy $interactionPolicy;
+    private LeadInteractionService $interactionService;
 
     public function __construct()
     {
@@ -35,6 +40,9 @@ class LeadController extends Controller
         $this->historyModel = new LeadHistory();
         $this->scoreModel = new LeadScore();
         $this->notificationModel = new Notification();
+        $minimum = (int) (new Setting())->get('lead_interaction_min_chars', 50);
+        $this->interactionPolicy = new LeadInteractionPolicy($minimum);
+        $this->interactionService = new LeadInteractionService(Database::getInstance(), $this->interactionPolicy);
     }
 
     /**
@@ -109,8 +117,15 @@ class LeadController extends Controller
             // Filtros "acionáveis" (Fase 5), usados pelos links dos insights do
             // Dashboard: leads sem contato há N dias e leads vencidos (next_contact_at no passado).
             'sem_contato_dias' => $this->input('sem_contato_dias', ''),
+            'sem_movimentacao_dias' => $this->input('sem_movimentacao_dias', ''),
             'vencidos'         => $this->input('vencidos', ''),
         ];
+        if ($filters['sem_movimentacao_dias'] === '' && $filters['sem_contato_dias'] !== '') {
+            $filters['sem_movimentacao_dias'] = $filters['sem_contato_dias'];
+        }
+        if ($filters['sem_movimentacao_dias'] !== '') {
+            $filters['sem_movimentacao_dias'] = (string) max(1, min(365, (int) $filters['sem_movimentacao_dias']));
+        }
 
         // Atalho da listagem para os cadastros do dia. As datas continuam no
         // filtro para que ordenação e paginação mantenham exatamente o resultado.
@@ -155,6 +170,7 @@ class LeadController extends Controller
             'canViewAll' => $canViewAll,
             'scope'      => $scope,
             'allTags'    => $tagModel->all('name ASC'),
+            'minimumObservationCharacters' => $this->interactionPolicy->minimumCharacters(),
         ]);
     }
 
@@ -216,16 +232,17 @@ class LeadController extends Controller
             return;
         }
 
-        $note = trim((string) $this->input('note', ''));
-        if ($note === '') {
-            $this->json(['success' => false, 'message' => 'Escreva uma observação antes de salvar.'], 422);
+        try {
+            $result = $this->interactionService->recordContact(
+                $leadId,
+                Auth::id(),
+                'observacao',
+                (string) $this->input('note', '')
+            );
+        } catch (DomainException $error) {
+            $this->json(['success' => false, 'message' => $error->getMessage()], 422);
             return;
         }
-
-        $this->historyModel->add($leadId, Auth::id(), 'observacao', $note);
-
-        $now = date('Y-m-d H:i:s');
-        $this->leadModel->update($leadId, ['last_contact_at' => $now]);
 
         $this->recalculateScore($leadId);
 
@@ -234,8 +251,8 @@ class LeadController extends Controller
         $this->json([
             'success'         => true,
             'message'         => 'Observação registrada com sucesso.',
-            'last_contact_at' => $now,
-            'last_contact_label' => days_since_contact_label($now),
+            'last_contact_at' => $result['contacted_at'],
+            'last_contact_label' => days_since_contact_label($result['contacted_at']),
         ]);
     }
 
@@ -266,6 +283,14 @@ class LeadController extends Controller
 
         if (empty($ids) || !in_array($action, ['status', 'assigned_to', 'tag'], true) || $value === '') {
             $this->json(['success' => false, 'message' => 'Selecione ao menos um lead, a ação e o valor desejado.'], 422);
+            return;
+        }
+
+        if ($action === 'status' && $this->interactionPolicy->isNegativeStatus($value)) {
+            $this->json([
+                'success' => false,
+                'message' => 'Não é permitido encerrar leads em lote. Registre o motivo e a justificativa individualmente.',
+            ], 422);
             return;
         }
 
@@ -395,6 +420,7 @@ class LeadController extends Controller
             'allTags'      => $tagModel->all('name ASC'),
             'leadTags'     => [],
             'formAction'   => url('leads/store'),
+            'minimumObservationCharacters' => $this->interactionPolicy->minimumCharacters(),
         ]);
     }
 
@@ -416,6 +442,26 @@ class LeadController extends Controller
             $data['closed_by'] = !empty($data['assigned_to']) ? (int) $data['assigned_to'] : null;
         }
 
+        $initialLossNote = null;
+        $initialLossReason = null;
+        if ($this->interactionPolicy->isNegativeStatus((string) ($data['status'] ?? 'novo'))) {
+            try {
+                $initialLossNote = $this->interactionPolicy->validateLoss(
+                    (string) $data['status'],
+                    !empty($data['loss_reason_id']) ? (int) $data['loss_reason_id'] : null,
+                    (string) $this->input('loss_note', '')
+                );
+                $initialLossReason = (new LossReason())->find((int) $data['loss_reason_id']);
+                if (!$initialLossReason || empty($initialLossReason['active'])) {
+                    throw new DomainException('Selecione um motivo de perda ativo.');
+                }
+            } catch (DomainException $error) {
+                flash('error', $error->getMessage());
+                $this->redirect('leads/create');
+                return;
+            }
+        }
+
         // Gera lead_code único (Fase 4) e cria o registro com retry em caso
         // de colisão por concorrência (ver Lead::createWithLeadCode).
         $result = $this->leadModel->createWithLeadCode($data);
@@ -428,6 +474,14 @@ class LeadController extends Controller
             'criacao',
             'Lead criado no sistema. Código: ' . $leadCode . '.'
         );
+        if ($initialLossNote !== null && $initialLossReason) {
+            $this->historyModel->add(
+                $leadId,
+                Auth::id(),
+                'observacao',
+                'Motivo da perda: ' . $initialLossReason['name'] . '. Contexto: ' . $initialLossNote
+            );
+        }
 
         // Tags (Fase 4): associa tags existentes selecionadas + novas tags digitadas
         $tagModel = new Tag();
@@ -460,11 +514,21 @@ class LeadController extends Controller
 
         $tagModel = new Tag();
 
+        $leadCalls = [];
+        try {
+            require_once APP_PATH . '/models/CallRecord.php';
+            $leadCalls = (new CallRecord())->forLead((int) $lead['id']);
+        } catch (Throwable $error) {
+            $leadCalls = [];
+        }
+
         $this->view('leads/show', [
             'pageTitle' => $lead['name'] ?: 'Lead #' . $lead['id'],
             'lead'      => $lead,
             'history'   => $this->historyModel->forLead($lead['id']),
             'tags'      => $tagModel->forLead($lead['id']),
+            'leadCalls' => $leadCalls,
+            'minimumObservationCharacters' => $this->interactionPolicy->minimumCharacters(),
         ]);
     }
 
@@ -492,6 +556,7 @@ class LeadController extends Controller
             'allTags'     => $tagModel->all('name ASC'),
             'leadTags'    => $tagModel->forLead((int) $lead['id']),
             'formAction'  => url('leads/' . $lead['id'] . '/update'),
+            'minimumObservationCharacters' => $this->interactionPolicy->minimumCharacters(),
         ]);
     }
 
@@ -516,23 +581,38 @@ class LeadController extends Controller
             $data['closed_at'] = null;
             $data['closed_by'] = null;
         }
+        $newStatus = (string) ($data['status'] ?? $existing['status']);
+        $newLossReasonId = isset($data['loss_reason_id']) ? (int) $data['loss_reason_id'] : null;
+        $statusChanged = $newStatus !== (string) $existing['status'];
+        $reasonChanged = $this->interactionPolicy->isNegativeStatus($newStatus)
+            && $newLossReasonId !== (int) ($existing['loss_reason_id'] ?? 0);
+
+        if ($statusChanged || $reasonChanged) {
+            try {
+                $this->interactionService->transitionStatus(
+                    $leadId,
+                    Auth::id(),
+                    $newStatus,
+                    $newLossReasonId > 0 ? $newLossReasonId : null,
+                    (string) $this->input('loss_note', ''),
+                    'formulário do lead'
+                );
+            } catch (DomainException $error) {
+                flash('error', $error->getMessage());
+                $this->redirect('leads/' . $leadId . '/edit');
+                return;
+            }
+            unset($data['status'], $data['loss_reason_id']);
+        }
+
         $this->leadModel->update($leadId, $data);
 
         // Tags (Fase 4): substitui o conjunto de tags pelo selecionado no formulário
         $tagModel = new Tag();
         $tagModel->syncForLead($leadId, $this->resolveTagIds($_POST, $tagModel));
 
-        // Registra alteração de status separadamente no histórico, se mudou
-        if (isset($data['status']) && $data['status'] !== $existing['status']) {
-            $this->historyModel->add(
-                $leadId,
-                Auth::id(),
-                'status',
-                'Status alterado de "' . status_label($existing['status']) . '" para "' . status_label($data['status']) . '".'
-            );
-            if ($data['status'] === 'fechado') {
-                $this->historyModel->add($leadId, Auth::id(), 'fechamento', 'Venda registrada no valor de ' . format_money($data['closed_value'] ?? null) . '.');
-            }
+        if ($statusChanged && $newStatus === 'fechado') {
+            $this->historyModel->add($leadId, Auth::id(), 'fechamento', 'Venda registrada no valor de ' . format_money($data['closed_value'] ?? null) . '.');
         }
 
         $this->historyModel->add($leadId, Auth::id(), 'dado_alterado', 'Dados do lead atualizados.');
@@ -575,11 +655,29 @@ class LeadController extends Controller
         Csrf::verifyRequest();
 
         $leadId = (int) $id;
-        $note = trim((string) $this->input('note', ''));
+        $lead = $this->leadModel->find($leadId);
+        if (!$lead) {
+            flash('error', 'Lead não encontrado.');
+            $this->redirect('leads');
+            return;
+        }
+        if (!Auth::hasRole(['admin', 'supervisor']) && (int) ($lead['assigned_to'] ?? 0) !== Auth::id()) {
+            flash('error', 'Você não tem permissão para registrar uma observação neste lead.');
+            $this->redirect('leads/' . $leadId);
+            return;
+        }
 
-        if ($note !== '') {
-            $this->historyModel->add($leadId, Auth::id(), 'observacao', $note);
+        try {
+            $this->interactionService->recordContact(
+                $leadId,
+                Auth::id(),
+                'observacao',
+                (string) $this->input('note', '')
+            );
             $this->recalculateScore($leadId);
+            flash('success', 'Observação registrada com sucesso.');
+        } catch (DomainException $error) {
+            flash('error', $error->getMessage());
         }
 
         $this->redirect('leads/' . $leadId);

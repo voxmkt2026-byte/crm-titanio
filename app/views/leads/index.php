@@ -24,12 +24,15 @@ $tcIsTodayView = !empty($filters['created_today']);
 $tcCanTransfer = $canViewAll && Auth::can('leads.edit');
 ?>
 
-<?php if (!empty($filters['sem_contato_dias']) || !empty($filters['vencidos']) || !empty($filters['closed_from']) || !empty($filters['closed_to'])): ?>
+<div class="d-none" id="tcLeadObservationPolicy"
+     data-min-observation-characters="<?= (int) $minimumObservationCharacters ?>"></div>
+
+<?php if (!empty($filters['sem_movimentacao_dias']) || !empty($filters['sem_contato_dias']) || !empty($filters['vencidos']) || !empty($filters['closed_from']) || !empty($filters['closed_to'])): ?>
 <div class="tc-insight-card mb-3" style="border-left: 4px solid var(--tc-warning);">
     <i class="fa-solid fa-filter"></i>
     <span>
-        <?php if (!empty($filters['sem_contato_dias'])): ?>
-            Mostrando leads sem contato há <?= (int) $filters['sem_contato_dias'] ?>+ dias (filtro vindo dos insights do Dashboard).
+        <?php if (!empty($filters['sem_movimentacao_dias']) || !empty($filters['sem_contato_dias'])): ?>
+            Mostrando leads sem movimentação há <?= (int) ($filters['sem_movimentacao_dias'] ?: $filters['sem_contato_dias']) ?>+ dias.
         <?php elseif (!empty($filters['vencidos'])): ?>
             Mostrando leads vencidos: agendados para contato em uma data que já passou (filtro vindo dos insights do Dashboard).
         <?php else: ?>
