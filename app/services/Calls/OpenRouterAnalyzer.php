@@ -69,23 +69,56 @@ final class OpenRouterAnalyzer
 
     public static function prompt(array $call): string
     {
-        return 'Atue como supervisor comercial da Titanium Consultoria. Transcreva integralmente a ligação em português do Brasil e produza análise comercial baseada somente no áudio. Classifique call_outcome; use voicemail para caixa postal. Retorne resumo, sentimento, temperatura, etapa, notas, necessidades, objeções, melhorias, roteiro, follow-up, riscos e alertas. Contexto: ' .
-            json_encode(['origem' => $call['from'] ?? '', 'destino' => $call['to'] ?? '', 'duracao' => $call['duration'] ?? 0], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return implode("\n", [
+            'Atue como supervisor comercial e coach de vendas da Titanium Consultoria.',
+            'A empresa trabalha com vendas e intermediação de cartas contempladas e soluções de crédito.',
+            'Transcreva integralmente esta ligação em português do Brasil e produza uma análise comercial profunda.',
+            'Baseie-se somente no áudio e no contexto fornecido. Não invente valores, condições, documentos, prazos, intenções ou falas.',
+            'Identifique necessidades, momento de compra, sinais de interesse, objeções explícitas e implícitas e a etapa real do funil.',
+            'Avalie abertura, descoberta, argumentação, proposta de valor, quebra de objeções, fechamento e planejamento de follow-up.',
+            'Nas melhorias, explique o impacto, a ação prática e escreva uma frase que o vendedor poderia ter utilizado.',
+            'Para cada objeção, registre a evidência observada, a estratégia recomendada e uma resposta natural e consultiva.',
+            'Crie scripts personalizados para a próxima conversa, perguntas de diagnóstico e uma mensagem pronta de follow-up.',
+            'Use nota de 0 a 10; use 0 apenas quando uma competência não foi observada ou não foi aplicável.',
+            'A Titanium deve ser tratada como consultoria/intermediadora, sem presumir que seja a administradora do consórcio.',
+            'Não dê parecer jurídico e não crie alertas genéricos sem relação com a conversa.',
+            'Contexto:',
+            json_encode([
+                'origem' => $call['from'] ?? '',
+                'destino' => $call['to'] ?? '',
+                'duracao_segundos' => $call['duration'] ?? 0,
+                'data_inicio' => $call['started_at'] ?? '',
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+        ]);
     }
 
     public static function schema(): array
     {
-        $stringArray = ['type' => 'array', 'items' => ['type' => 'string']];
+        $stringArray = ['type' => 'array', 'items' => ['type' => 'string'], 'maxItems' => 30];
+        $stringObject = static function (array $fields): array {
+            $properties = [];
+            foreach ($fields as $field) $properties[$field] = ['type' => 'string'];
+            return ['type' => 'object', 'properties' => $properties, 'required' => $fields, 'additionalProperties' => false];
+        };
+        $objectList = static function (array $fields) use ($stringObject): array {
+            return ['type' => 'array', 'items' => $stringObject($fields), 'maxItems' => 5];
+        };
+        $scoreFields = ['overall','opening','discovery','argumentation','value_proposition','objection_handling','closing','follow_up'];
+        $scoreProperties = [];
+        foreach ($scoreFields as $field) $scoreProperties[$field] = ['type' => 'integer', 'minimum' => 0, 'maximum' => 10];
         $properties = [
             'transcript' => ['type' => 'string'], 'summary' => ['type' => 'string'],
-            'sentiment' => ['type' => 'string'], 'lead_temperature' => ['type' => 'string'],
-            'sales_stage' => ['type' => 'string'], 'call_outcome' => ['type' => 'string'],
+            'sentiment' => ['type' => 'string', 'enum' => ['positivo','neutro','negativo','misto']],
+            'lead_temperature' => ['type' => 'string', 'enum' => ['frio','morno','quente','indefinido']],
+            'sales_stage' => ['type' => 'string', 'enum' => ['contato_inicial','qualificacao','proposta','follow_up','fechamento','sem_avanco']],
             'topics' => $stringArray, 'key_points' => $stringArray, 'customer_needs' => $stringArray,
             'buying_signals' => $stringArray, 'strengths' => $stringArray,
-            'improvements' => ['type' => 'array', 'items' => ['type' => 'object']],
-            'scores' => ['type' => 'object'], 'objections' => ['type' => 'array', 'items' => ['type' => 'object']],
+            'improvements' => $objectList(['point','why_it_matters','recommended_action','example_phrase']),
+            'scores' => ['type' => 'object', 'properties' => $scoreProperties, 'required' => $scoreFields, 'additionalProperties' => false],
+            'objections' => $objectList(['objection','evidence','response_strategy','suggested_response']),
             'recommended_approach' => ['type' => 'string'], 'discovery_questions' => $stringArray,
-            'sales_script' => ['type' => 'object'], 'follow_up_plan' => ['type' => 'object'],
+            'sales_script' => $stringObject(['opening','value_pitch','objection_handling','closing']),
+            'follow_up_plan' => $stringObject(['timing','channel','objective','message']),
             'next_steps' => $stringArray, 'risks' => $stringArray, 'compliance_alerts' => $stringArray,
         ];
         return ['type' => 'object', 'properties' => $properties, 'required' => array_keys($properties), 'additionalProperties' => false];

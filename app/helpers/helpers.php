@@ -135,6 +135,58 @@ if (!function_exists('format_date')) {
     }
 }
 
+if (!function_exists('format_datetime')) {
+    /** Formata data e hora para d/m/Y H:i. */
+    function format_datetime(?string $date): string
+    {
+        return format_date($date, true);
+    }
+}
+
+if (!function_exists('call_status_label')) {
+    /** Traduz códigos técnicos de telefonia para termos operacionais. */
+    function call_status_label(?string $status): string
+    {
+        $key = strtoupper(trim((string) $status));
+        $labels = [
+            'NORMAL_CLEARING' => 'Concluída',
+            'SUCCESS' => 'Concluída',
+            'ANSWER' => 'Atendida',
+            'USER_BUSY' => 'Ocupado',
+            'NO_ANSWER' => 'Não atendida',
+            'NO_USER_RESPONSE' => 'Sem resposta',
+            'ORIGINATOR_CANCEL' => 'Cancelada',
+            'CALL_REJECTED' => 'Rejeitada',
+            'UNALLOCATED_NUMBER' => 'Número inválido',
+            'NORMAL_TEMPORARY_FAILURE' => 'Falha temporária',
+        ];
+        if (isset($labels[$key])) return $labels[$key];
+        return $key === '' ? 'Não informado' : ucfirst(strtolower(str_replace('_', ' ', $key)));
+    }
+}
+
+if (!function_exists('call_status_label')) {
+    /** Traduz códigos técnicos de telefonia para termos operacionais. */
+    function call_status_label(?string $status): string
+    {
+        $key = strtoupper(trim((string) $status));
+        $labels = [
+            'NORMAL_CLEARING' => 'Concluída',
+            'SUCCESS' => 'Concluída',
+            'ANSWER' => 'Atendida',
+            'USER_BUSY' => 'Ocupado',
+            'NO_ANSWER' => 'Não atendida',
+            'NO_USER_RESPONSE' => 'Sem resposta',
+            'ORIGINATOR_CANCEL' => 'Cancelada',
+            'CALL_REJECTED' => 'Rejeitada',
+            'UNALLOCATED_NUMBER' => 'Número inválido',
+            'NORMAL_TEMPORARY_FAILURE' => 'Falha temporária',
+        ];
+        if (isset($labels[$key])) return $labels[$key];
+        return $key === '' ? 'Não informado' : ucfirst(strtolower(str_replace('_', ' ', $key)));
+    }
+}
+
 if (!function_exists('time_ago')) {
     /** Retorna string relativa simples: "há 2 dias", "há 5 minutos" etc. */
     function time_ago(?string $date): string

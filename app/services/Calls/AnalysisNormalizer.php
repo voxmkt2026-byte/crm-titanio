@@ -20,7 +20,7 @@ final class AnalysisNormalizer
         $analysis['sentiment'] = $this->enum($analysis['sentiment'] ?? null, ['positivo','neutro','negativo','misto'], 'misto');
         $analysis['lead_temperature'] = $this->enum($analysis['lead_temperature'] ?? null, ['frio','morno','quente','indefinido'], 'indefinido');
         $analysis['sales_stage'] = $this->enum($analysis['sales_stage'] ?? null, ['contato_inicial','qualificacao','proposta','follow_up','fechamento','sem_avanco'], 'sem_avanco');
-        $analysis['call_outcome'] = $this->enum($analysis['call_outcome'] ?? null, self::OUTCOMES, 'other');
+        $analysis['call_outcome'] = $this->enum($analysis['call_outcome'] ?? $this->inferOutcome($transcript), self::OUTCOMES, 'other');
         $analysis['scores'] = $this->scores($analysis['scores'] ?? []);
         foreach (['topics','key_points','customer_needs','buying_signals','strengths','improvements','objections','discovery_questions','next_steps','risks','compliance_alerts'] as $key) {
             $analysis[$key] = is_array($analysis[$key] ?? null) ? array_slice($analysis[$key], 0, 30) : [];
@@ -40,6 +40,15 @@ final class AnalysisNormalizer
     {
         $value = strtolower(trim((string) $value));
         return in_array($value, $allowed, true) ? $value : $default;
+    }
+
+    private function inferOutcome(string $transcript): string
+    {
+        $text = mb_strtolower($transcript);
+        foreach (['caixa postal', 'correio de voz', 'deixe seu recado', 'deixe sua mensagem'] as $phrase) {
+            if (str_contains($text, $phrase)) return 'voicemail';
+        }
+        return 'conversation';
     }
 
     private function scores(mixed $scores): array

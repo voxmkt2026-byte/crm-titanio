@@ -7,6 +7,11 @@ $s = fn($key, $default = '') => e($settings[$key] ?? $default);
 ?>
 
 <div class="d-flex justify-content-end mb-3">
+    <?php if (Auth::can('calls.manage')): ?>
+    <a href="<?= e(url('configuracoes/ligacoes')) ?>" class="btn btn-outline-dark btn-sm me-2">
+        <i class="fa-solid fa-phone-volume me-1"></i> Integrações de Ligações
+    </a>
+    <?php endif; ?>
     <a href="<?= e(url('configuracoes/whatsapp-templates')) ?>" class="btn btn-outline-success btn-sm">
         <i class="fa-brands fa-whatsapp me-1"></i> Templates de WhatsApp
     </a>

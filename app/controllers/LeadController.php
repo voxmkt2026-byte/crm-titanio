@@ -14,6 +14,7 @@ require_once APP_PATH . '/models/Notification.php';
 require_once APP_PATH . '/models/Setting.php';
 require_once APP_PATH . '/services/Leads/LeadInteractionPolicy.php';
 require_once APP_PATH . '/services/Leads/LeadInteractionService.php';
+require_once APP_PATH . '/services/Calls/CallLinkRepairService.php';
 
 class LeadController extends Controller
 {
@@ -515,6 +516,11 @@ class LeadController extends Controller
         $tagModel = new Tag();
 
         $leadCalls = [];
+        try {
+            (new CallLinkRepairService(Database::getInstance()))->repairForLead((int) $lead['id']);
+        } catch (Throwable $error) {
+            error_log('LeadController::repairForLead - ' . $error->getMessage());
+        }
         try {
             require_once APP_PATH . '/models/CallRecord.php';
             $leadCalls = (new CallRecord())->forLead((int) $lead['id']);

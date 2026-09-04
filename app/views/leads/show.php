@@ -293,16 +293,4 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>';
 ?>
 <?php endif; ?>
-<?php if (!empty($leadCalls)): ?>
-<div class="card mt-4">
-    <div class="card-header"><h2 class="h5 mb-0"><i class="fa-solid fa-phone-volume me-2"></i>Ligações</h2></div>
-    <div class="list-group list-group-flush">
-        <?php foreach ($leadCalls as $leadCall): ?>
-        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="<?= e(url('ligacoes/' . $leadCall['id'])) ?>">
-            <span><strong><?= e(format_datetime($leadCall['started_at'])) ?></strong><br><small class="text-muted"><?= e($leadCall['agent_name'] ?: 'Atendente não identificado') ?> · <?= e(gmdate('i:s', (int) $leadCall['duration'])) ?></small></span>
-            <span class="badge bg-primary"><?= isset($leadCall['overall_score']) ? (int) $leadCall['overall_score'] . '/10' : 'Processando' ?></span>
-        </a>
-        <?php endforeach; ?>
-    </div>
-</div>
-<?php endif; ?>
+<?php require APP_PATH . '/views/calls/_lead_section.php'; ?>
