@@ -1,0 +1,8 @@
+/.env
+/storage/analyses/*.json
+/storage/analyses/*.lock
+/storage/tmp/*
+!/storage/tmp/.gitkeep
+!/storage/analyses/.gitkeep
+*.log
+
