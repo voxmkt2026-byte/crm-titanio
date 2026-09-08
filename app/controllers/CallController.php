@@ -7,6 +7,7 @@ require_once APP_PATH . '/services/Calls/CallDashboardMetrics.php';
 require_once APP_PATH . '/services/Calls/CallSyncService.php';
 require_once APP_PATH . '/services/Calls/CallRecordingArchive.php';
 require_once APP_PATH . '/services/Calls/CallLinkRepairService.php';
+require_once APP_PATH . '/services/Calls/CallAudioRange.php';
 
 final class CallController extends Controller
 {
@@ -23,16 +24,20 @@ final class CallController extends Controller
             || (Auth::can('calls.view_own') && (int) ($call['assigned_to'] ?? 0) === (int) Auth::id());
     }
 
-    private function service(): CallSyncService
+    private function config(): IntegrationConfig
     {
-        $config = new IntegrationConfig(
+        return new IntegrationConfig(
             new IntegrationCredential(),
             SecretVault::fromFile(ROOT_PATH . '/config/integration.key'),
             IntegrationConfig::legacyEnvironment(ROOT_PATH . '/ligacao/.env')
         );
-        return new CallSyncService(Database::getInstance(), $config);
+
     }
 
+    private function service(): CallSyncService
+    {
+        return new CallSyncService(Database::getInstance(), $this->config());
+    }
     public function index(): void
     {
         $this->requireLogin();
@@ -112,36 +117,13 @@ final class CallController extends Controller
 
         try {
             $service = $this->service();
-            try {
-                require_once ROOT_PATH . '/ligacao/bootstrap.php';
-                app_factory()->analysis()->run($externalId, $this->input('force', '0') === '1');
-                $service->importCachedAnalysis((int) $id, ROOT_PATH . '/ligacao/storage/analyses');
-            } catch (Throwable $primaryError) {
-                error_log('CallController::primaryAnalysis ' . $primaryError->getMessage());
+            if ($this->input('force', '0') === '1' || ($call['analysis_status'] ?? '') !== 'completed') {
                 $service->reanalyze((int) $id);
             }
             echo json_encode(['success' => true, 'redirect' => url('ligacoes/' . $id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (Throwable $error) {
-            error_log('CallController::analyze ' . $error->getMessage());
-            $code = method_exists($error, 'publicCode') ? (string) $error->publicCode() : $error->getMessage();
-            $messages = [
-                'RECORDING_NOT_AVAILABLE' => 'Esta ligação não possui gravação disponível.',
-                'AI_NOT_CONFIGURED' => 'Configure a chave da IA utilizada pelo módulo de ligações.',
-                'AI_RATE_LIMIT' => 'A IA atingiu o limite temporário. Tente novamente em alguns minutos.',
-                'AI_ANALYSIS_FAILED' => 'A IA não conseguiu concluir o relatório desta gravação.',
-                'AI_ANALYSIS_NETWORK_FAILED' => 'A IA não respondeu dentro do prazo. Tente novamente.',
-                'API4COM_AUTH_FAILED' => 'O token da Api4Com foi rejeitado.',
-                'API4COM_SYNC_FAILED' => 'A Api4Com não respondeu ao consultar esta ligação.',
-                'API4COM_UNAVAILABLE' => 'A Api4Com está temporariamente indisponível.',
-                'CALL_NOT_FOUND' => 'A ligação não foi encontrada na Api4Com.',
-                'INVALID_RECORDING_URL' => 'O endereço da gravação retornado pela Api4Com é inválido.',
-                'RECORDING_DOWNLOAD_FAILED' => 'A gravação não pôde ser baixada da Api4Com.',
-                'RECORDING_STORAGE_UNAVAILABLE' => 'A hospedagem não permitiu gravar o arquivo de áudio.',
-                'RECORDING_STORE_FAILED' => 'A hospedagem não permitiu armazenar a gravação.',
-                'ANALYSIS_STORAGE_FAILED' => 'A hospedagem não permitiu salvar o relatório da análise.',
-                'HTTP_REQUEST_FAILED' => 'A hospedagem não conseguiu se comunicar com a Api4Com ou com a IA.',
-            ];
-            echo json_encode(['success' => false, 'message' => ($messages[$code] ?? 'Não foi possível concluir a análise.') . ' Código: ' . preg_replace('/[^A-Z0-9_]/', '', strtoupper((string) $code))], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            CallFailure::log('analyze', $error);
+            echo json_encode(['success'=>false,'message'=>CallFailure::message($error)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
         exit;
     }
@@ -185,59 +167,43 @@ final class CallController extends Controller
     public function audio(string $id): void
     {
         $this->requireLogin();
-        $call = $this->calls->detail((int) $id);
-        if (!$call || !$this->allowed($call)) {
-            http_response_code($call ? 403 : 404);
-            return;
-        }
-        if (($call['recording_status'] ?? '') !== 'stored') {
-            try {
-                $config = new IntegrationConfig(
-                    new IntegrationCredential(),
-                    SecretVault::fromFile(ROOT_PATH . '/config/integration.key'),
-                    IntegrationConfig::legacyEnvironment(ROOT_PATH . '/ligacao/.env')
-                );
-                $call = (new CallRecordingArchive(Database::getInstance(), $config))->archive((int) $id);
-            } catch (Throwable $error) {
-                error_log('CallController::audio ' . $error->getMessage());
+        $call=$this->calls->detail((int)$id);
+        if (!$call || !$this->allowed($call)) { http_response_code($call ? 403 : 404); return; }
+        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+        set_time_limit(180);
+        try {
+            $call=CallRecordingArchive::cached($call,new CallMediaStorage(STORAGE_PATH))
+                ?? (new CallRecordingArchive(Database::getInstance(),$this->config()))->archive((int)$id);
+        } catch (Throwable $error) {
+            CallFailure::log('audio',$error);
+            if (in_array(CallFailure::code($error),['RECORDING_STORE_FAILED','RECORDING_STORAGE_UNAVAILABLE','TEMP_FILE_FAILED','TEMP_DIRECTORY_FAILED'],true)) {
                 $this->streamRemote($call);
                 return;
             }
-        }
-
-        $relative = (string) ($call['recording_path'] ?? '');
-        $root = realpath(STORAGE_PATH . '/calls');
-        $path = realpath(STORAGE_PATH . '/calls/' . ltrim(str_replace('\\', '/', $relative), '/'));
-        if (!$root || !$path || !str_starts_with(strtolower($path), strtolower($root . DIRECTORY_SEPARATOR)) || !is_file($path)) {
-            $this->streamRemote($call);
+            $this->json(['success'=>false,'message'=>CallFailure::message($error)],502);
             return;
         }
-        $size = filesize($path);
-        $start = 0;
-        $end = $size - 1;
-        if (isset($_SERVER['HTTP_RANGE']) && preg_match('/bytes=(\d*)-(\d*)/', $_SERVER['HTTP_RANGE'], $match)) {
-            $start = $match[1] === '' ? 0 : (int) $match[1];
-            $end = $match[2] === '' ? $end : min($end, (int) $match[2]);
-            if ($start > $end) {
-                http_response_code(416);
-                return;
-            }
-            http_response_code(206);
-            header("Content-Range: bytes {$start}-{$end}/{$size}");
-        }
-        header('Content-Type: ' . (string) ($call['recording_mime'] ?: 'audio/mpeg'));
+        $path=$call['absolute_recording_path'];
+        $size=(int)filesize($path);
+        try { [$start,$end,$status]=CallAudioRange::parse($_SERVER['HTTP_RANGE']??null,$size); }
+        catch (RangeException) { http_response_code(416); header('Content-Range: bytes */'.$size); return; }
+        $handle=@fopen($path,'rb');
+        if (!$handle) { http_response_code(503); return; }
+        while (ob_get_level()>0) ob_end_clean();
+        http_response_code($status);
+        if ($status===206) header("Content-Range: bytes {$start}-{$end}/{$size}");
+        header('Content-Type: '.$call['recording_mime']);
         header('Accept-Ranges: bytes');
         header('Cache-Control: private, max-age=300');
         header('X-Content-Type-Options: nosniff');
-        header('Content-Length: ' . ($end - $start + 1));
-        $handle = fopen($path, 'rb');
-        fseek($handle, $start);
-        $left = $end - $start + 1;
-        while ($left > 0 && !feof($handle)) {
-            $chunk = fread($handle, min(8192, $left));
-            if ($chunk === false) break;
+        header('Content-Length: '.($end-$start+1));
+        fseek($handle,$start);
+        $left=$end-$start+1;
+        while ($left>0 && !feof($handle)) {
+            $chunk=fread($handle,min(8192,$left));
+            if ($chunk===false || $chunk==='') break;
             echo $chunk;
-            $left -= strlen($chunk);
+            $left-=strlen($chunk);
         }
         fclose($handle);
         exit;
@@ -245,36 +211,31 @@ final class CallController extends Controller
 
     private function streamRemote(array $call): void
     {
-        $externalId = (string) ($call['external_id'] ?? '');
-        if (!preg_match('/^[A-Za-z0-9._:-]{1,160}$/', $externalId)) {
-            http_response_code(404);
-            return;
-        }
-        $started = false;
+        $started=false;
         try {
-            require_once ROOT_PATH . '/ligacao/bootstrap.php';
-            app_factory()->recordings()->stream(
-                $externalId,
-                isset($_SERVER['HTTP_RANGE']) ? (string) $_SERVER['HTTP_RANGE'] : null,
-                function (int $status, array $headers) use (&$started): void {
-                    if ($status < 200 || $status >= 300) return;
-                    $started = true;
+            $remote=(new CallsApiClient($this->config()))->find((string)$call['external_id']);
+            $url=trim((string)($remote['record_url']??''));
+            if ($url==='') throw new RuntimeException('RECORDING_NOT_AVAILABLE');
+            CallMediaTransport::http(STORAGE_PATH.'/calls-tmp')->stream(
+                $url, [], $_SERVER['HTTP_RANGE']??null,
+                function (int $status,array $headers) use (&$started): void {
+                    if ($status<200 || $status>=300) return;
+                    $mime=strtolower((string)($headers['content-type']??''));
+                    if (!str_starts_with($mime,'audio/') && !str_starts_with($mime,'application/octet-stream')) throw new RuntimeException('RECORDING_INVALID_CONTENT');
+                    while (ob_get_level()>0) ob_end_clean();
+                    $started=true;
                     http_response_code($status);
                     header('Cache-Control: private, max-age=300');
                     header('X-Content-Type-Options: nosniff');
                     foreach (['content-type'=>'Content-Type','content-length'=>'Content-Length','content-range'=>'Content-Range','accept-ranges'=>'Accept-Ranges'] as $source=>$target) {
-                        if (isset($headers[$source])) header($target . ': ' . str_replace(["\r", "\n"], '', (string) $headers[$source]));
+                        if (isset($headers[$source])) header($target.': '.str_replace(["\r","\n"],'',(string)$headers[$source]));
                     }
                 },
-                static function (string $chunk): void {
-                    echo $chunk;
-                    flush();
-                }
+                static function (string $chunk): void { echo $chunk; flush(); }
             );
-            exit;
         } catch (Throwable $error) {
-            error_log('CallController::streamRemote ' . $error->getMessage());
-            if (!$started) http_response_code(404);
+            CallFailure::log('stream_audio',$error);
+            if (!$started) $this->json(['success'=>false,'message'=>CallFailure::message($error)],502);
         }
     }
 }

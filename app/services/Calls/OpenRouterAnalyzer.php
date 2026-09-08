@@ -44,12 +44,13 @@ final class OpenRouterAnalyzer
     public function analyze(string $path, string $mime, array $call): array
     {
         $bytes = file_get_contents($path);
-        if (!is_string($bytes) || $bytes === '') throw new RuntimeException('Áudio indisponível para análise.');
+        if (!is_string($bytes) || $bytes === '') throw new RuntimeException('AUDIO_UNAVAILABLE');
         $curl = curl_init(rtrim($this->baseUrl, '/') . '/chat/completions');
         curl_setopt_array($curl, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => $this->timeout,
+            CURLOPT_CONNECTTIMEOUT => 15,
             CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $this->apiKey, 'Content-Type: application/json'],
             CURLOPT_POSTFIELDS => json_encode(self::buildPayload($this->model, $bytes, $mime, $call), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
         ]);
@@ -57,8 +58,11 @@ final class OpenRouterAnalyzer
         $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
         $error = curl_error($curl);
         curl_close($curl);
+        if (in_array($status,[401,403],true)) throw new RuntimeException('AI_NOT_CONFIGURED');
+        if ($status===429) throw new RuntimeException('AI_RATE_LIMIT');
+        if ($status===413) throw new RuntimeException('AUDIO_TOO_LARGE');
         if (!is_string($body) || $status < 200 || $status >= 300) {
-            throw new RuntimeException('OPENROUTER_REQUEST_FAILED' . ($error !== '' ? ': ' . $error : ''));
+            throw new RuntimeException($error !== '' ? 'AI_ANALYSIS_NETWORK_FAILED' : 'AI_ANALYSIS_FAILED');
         }
         $response = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         $content = $response['choices'][0]['message']['content'] ?? '';

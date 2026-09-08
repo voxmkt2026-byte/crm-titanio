@@ -100,7 +100,7 @@ $syncCounts = is_array($syncState['last_counts'] ?? null) ? $syncState['last_cou
     </div>
     <div class="card-footer d-flex justify-content-between gap-2">
         <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>Salvar <?= e($meta[0]) ?></button>
-        <button class="btn btn-outline-secondary" formaction="<?= e(url('configuracoes/ligacoes/testar/' . $provider)) ?>" formmethod="post" formnovalidate><i class="fa-solid fa-plug-circle-check me-1"></i>Testar</button>
+        <button class="btn btn-outline-secondary" formaction="<?= e(url('configuracoes/ligacoes/testar/' . $provider)) ?>" formmethod="post" formnovalidate><i class="fa-solid fa-plug-circle-check me-1"></i><?= $provider === 'api4com' ? 'Testar API e armazenamento' : 'Testar' ?></button>
     </div>
 </form>
 <?php endforeach; ?>
