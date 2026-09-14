@@ -126,6 +126,7 @@ $tcAllUrl = url('pipeline?' . http_build_query(array_merge($tcPipelineQuery, ['v
                             </div>
                         <?php endif; ?>
                         <div class="tc-kanban-card-actions">
+                            <?php $phoneActionLead=$lead; $phoneActionClass='tc-kanban-move-btn'; require __DIR__.'/../partials/_phone_action.php'; ?>
                             <button type="button" class="tc-kanban-move-btn" title="Mover para outra coluna">
                                 <i class="fa-solid fa-arrow-right-arrow-left"></i>
                             </button>

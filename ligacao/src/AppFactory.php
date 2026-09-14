@@ -10,9 +10,12 @@ final class AppFactory
     private ?CallsGateway $calls = null;
     private ?RecordingProvider $recordings = null;
     private ?AnalysisService $analysis = null;
+    private ?WebphoneService $webphone = null;
 
-    public function __construct(private Config $config, ?HttpClientInterface $http = null)
+    public function __construct(private Config $config, ?HttpClientInterface $http = null, private string $accountId = '1', private ?string $storageRoot = null)
     {
+        AccountRegistry::validateId($accountId);
+        $this->storageRoot ??= dirname(__DIR__) . '/storage';
         $allowedHosts = preg_split(
             '/\s*,\s*/',
             $config->get('RECORDING_ALLOWED_HOST_SUFFIXES', 'api4com.com') ?: 'api4com.com',
@@ -56,7 +59,7 @@ final class AppFactory
     public function analysis(): AnalysisService
     {
         if (!$this->analysis instanceof AnalysisService) {
-            $store = new AnalysisStore(dirname(__DIR__) . '/storage/analyses');
+            $store = $this->analysisStore();
             $ai = new GeminiClient($this->http, $this->config);
             $this->analysis = new AnalysisService(
                 $store,
@@ -68,8 +71,35 @@ final class AppFactory
         return $this->analysis;
     }
 
+    public function analysisStore(): AnalysisStore
+    {
+        return new AnalysisStore($this->storageRoot . ($this->accountId === '1' ? '/analyses' : '/accounts/2/analyses'));
+    }
+
+    public function webphone(): WebphoneService
+    {
+        if (!$this->webphone instanceof WebphoneService) {
+            $gateway = new Api4ComWebphoneClient($this->http, $this->config);
+            $this->webphone = new WebphoneService(
+                $gateway,
+                $this->config->get('WEBPHONE_EXTENSION', '1000') ?: '1000'
+            );
+        }
+        return $this->webphone;
+    }
+
     public function config(): Config
     {
         return $this->config;
+    }
+
+    public function trash(): CallTrashStore
+    {
+        return new CallTrashStore($this->storageRoot . '/trash', $this->accountId);
+    }
+
+    public function extensionClient(): Api4ComWebphoneClient
+    {
+        return new Api4ComWebphoneClient($this->http, $this->config);
     }
 }

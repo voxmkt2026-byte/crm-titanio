@@ -428,6 +428,7 @@ if ($currentUser) {
 <script src="<?= e(asset('js/app.js')) ?>"></script>
 <script src="<?= e(asset('js/workspace.js')) ?>"></script>
 
+<?php require __DIR__ . '/../partials/_phone_launcher.php'; ?>
 <?php if (isset($pageScripts)) { echo $pageScripts; } ?>
 </body>
 </html>

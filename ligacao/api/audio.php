@@ -10,6 +10,7 @@ require dirname(__DIR__) . '/bootstrap.php';
 $streamStarted = false;
 
 try {
+    (new App\LocalRequestGuard())->assertLocalRead($_SERVER);
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
         throw new AppException('Método inválido em áudio.', 'METHOD_NOT_ALLOWED', 405);
     }
@@ -55,4 +56,3 @@ try {
         JsonResponse::emit(JsonResponse::fromThrowable($error), $status);
     }
 }
-

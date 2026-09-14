@@ -505,6 +505,12 @@
             }
 
             setLeadModalAction('tcPipelineLeadCall', card.getAttribute('data-call-url'));
+            var phoneAction = document.getElementById('tcPipelineLeadCall');
+            if (phoneAction && window.CrmPhone) {
+                phoneAction.setAttribute('data-crm-phone', '');
+                phoneAction.setAttribute('data-lead-id', card.getAttribute('data-lead-id'));
+                phoneAction.setAttribute('data-phone', ''); // Resolve full phone + separate DDD from authorized lead on server.
+            }
             setLeadModalAction('tcPipelineLeadEmailAction', card.getAttribute('data-email-url'));
             setLeadModalAction('tcPipelineLeadWhatsappAction', card.getAttribute('data-whatsapp-url'));
             setLeadModalAction('tcPipelineLeadOpen', card.getAttribute('data-lead-url'));
@@ -1969,12 +1975,14 @@
 
             var html = '';
             items.forEach(function (item) {
-                html += '<a href="' + item.url + '" class="tc-global-search-item">' +
+                html += '<div style="display:flex;align-items:center"><a style="flex:1;min-width:0" href="' + escapeHtml(item.url) + '" class="tc-global-search-item">' +
                     '<div class="tc-gs-name">' + escapeHtml(item.name) + '</div>' +
                     '<div class="tc-gs-meta">' + escapeHtml(item.lead_code || '') +
                     (item.phone ? ' · ' + escapeHtml(item.phone) : '') +
                     ' · ' + escapeHtml(item.status) + '</div>' +
-                    '</a>';
+                    '</a>' +
+                    (window.CrmPhone && item.phone ? '<button type="button" class="tc-global-search-phone" data-crm-phone data-lead-id="' + Number(item.id) + '" title="Ligar para este lead" aria-label="Ligar para este lead"><i class="fa-solid fa-phone" aria-hidden="true"></i></button>' : '') +
+                    '</div>';
             });
             results.innerHTML = html;
             results.classList.add('show');

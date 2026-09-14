@@ -20,7 +20,9 @@ $renderList = static function (mixed $values, string $empty = 'Nenhum item ident
 };
 ?>
 
+<?php $workspaceLeadId=(int)($call['lead_id']??0); require __DIR__ . '/_workspace.php'; ?>
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <?php $phoneActionLead=['id'=>$call['lead_id']??0,'phone'=>$call['normalized_phone']??$call['contact_phone']??'']; require __DIR__.'/../partials/_phone_action.php'; ?>
     <a href="<?= e(url('ligacoes')) ?>" class="text-decoration-none"><i class="fa-solid fa-arrow-left me-1"></i>Voltar às ligações</a>
     <div class="d-flex gap-2">
         <?php if (!empty($call['lead_id'])): ?><a class="btn btn-outline-primary" href="<?= e(url('leads/' . $call['lead_id'])) ?>"><i class="fa-solid fa-user me-1"></i>Abrir lead</a><?php endif; ?>
@@ -30,7 +32,7 @@ $renderList = static function (mixed $values, string $empty = 'Nenhum item ident
 
 <div class="card mb-4"><div class="card-body">
     <div class="d-flex flex-wrap justify-content-between gap-3"><div><div class="text-uppercase text-success small fw-bold mb-1">Inteligência da conversa</div><h1 class="h3 mb-1">Análise da ligação</h1><div class="text-muted"><?= e($call['lead_name'] ?: $call['contact_phone'] ?: 'Ligação sem lead') ?> · <?= e(format_datetime($call['started_at'])) ?> · <?= e(gmdate('i:s',(int)$call['duration'])) ?></div></div><div class="text-end"><div class="display-6 fw-bold"><?= isset($call['overall_score']) ? (int)$call['overall_score'] . '/10' : '—' ?></div><small class="text-muted">Nota geral</small></div></div>
-    <?php if (($call['recording_status'] ?? '') !== 'discarded' && ($call['recording_status'] ?? '') !== 'unavailable'): ?><audio class="w-100 mt-4" controls preload="metadata" src="<?= e(url('ligacoes/' . $call['id'] . '/audio')) ?>"></audio><div class="form-text">A gravação é carregada da Api4Com e armazenada com segurança, sem usar IA.</div><?php else: ?><div class="alert alert-light border mt-4 mb-0">Esta ligação não possui gravação disponível.</div><?php endif; ?>
+    <?php if (($call['recording_status'] ?? '') !== 'discarded' && ($call['recording_status'] ?? '') !== 'unavailable'): ?><audio class="w-100 mt-4" controls preload="none" src="<?= e(url('ligacoes/' . $call['id'] . '/audio')) ?>"></audio><div class="form-text">A gravação é carregada da Api4Com e armazenada com segurança, sem usar IA.</div><?php else: ?><div class="alert alert-light border mt-4 mb-0">Esta ligação não possui gravação disponível.</div><?php endif; ?>
 </div></div>
 
 <?php if ($analysis): ?>
@@ -62,3 +64,4 @@ $renderList = static function (mixed $values, string $empty = 'Nenhum item ident
 <div class="card"><div class="card-body text-center py-5"><?php if (($call['analysis_status'] ?? '') === 'failed'): ?><i class="fa-solid fa-triangle-exclamation fa-2x text-danger mb-3"></i><h2 class="h5">A análise encontrou um erro</h2><p class="text-muted mb-1">Clique em “Analisar novamente”. Se persistir, confira o código abaixo nas configurações.</p><code><?= e($call['last_error_code'] ?? 'AI_ANALYSIS_FAILED') ?></code><?php else: ?><i class="fa-solid fa-wand-magic-sparkles fa-2x text-primary mb-3"></i><h2 class="h5">Análise disponível</h2><p class="text-muted mb-0">Clique em “Analisar agora” e aguarde nesta página até o relatório ser concluído.</p><?php endif; ?></div></div>
 <?php endif; ?>
 <?php require __DIR__ . '/_analysis_script.php'; ?>
+<?php $copilotCallId=(int)$call['id']; require __DIR__.'/_copilot_reports.php'; ?>

@@ -29,16 +29,15 @@ function app_config(): Config
     return $config;
 }
 
+function app_accounts(): \App\AccountRegistry
+{
+    return new \App\AccountRegistry(app_config(), __DIR__ . '/storage/settings');
+}
+
 function app_factory(): AppFactory
 {
-    static $factory = null;
-
-    if (!$factory instanceof AppFactory) {
-        $factory = new AppFactory(app_config());
-    }
-
-    return $factory;
+    $id = \App\AccountRegistry::validateId($_GET['account'] ?? '1');
+    return new AppFactory(app_accounts()->config($id), null, $id);
 }
 
 date_default_timezone_set(app_config()->get('APP_TIMEZONE', 'America/Sao_Paulo') ?: 'America/Sao_Paulo');
-

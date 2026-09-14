@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/_workspace.php'; ?>
 <div class="card mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="h5 mb-0"><i class="fa-solid fa-phone-volume me-2"></i>Ligações e inteligência comercial</h2>
@@ -25,11 +26,10 @@
                     <?php if (!empty($leadCall['summary'])): ?><p class="mb-2"><?= e($leadCall['summary']) ?></p><?php endif; ?>
                     <?php if (!empty($leadAnalysis['next_steps']) && is_array($leadAnalysis['next_steps'])): ?><div class="small"><strong>Próximo passo:</strong> <?= e((string) $leadAnalysis['next_steps'][0]) ?></div><?php endif; ?>
                 </div>
-                <div><a class="btn btn-sm btn-primary" href="<?= e(url('ligacoes/' . $leadCall['id'])) ?>"><i class="fa-solid fa-play me-1"></i>Ouvir e ver análise</a></div>
+                <div><a class="btn btn-sm btn-primary cw-open-link" data-cw-open="<?= (int)$leadCall['id'] ?>" data-cw-lead="<?= (int)($lead['id']??0) ?>" href="<?= e(url('ligacoes/' . $leadCall['id'])) ?>"><i class="fa-solid fa-play me-1"></i>Ouvir e ver análise</a></div>
             </div>
         </div>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
 </div>
-

@@ -22,7 +22,7 @@ final class CallLinkRepairService
     {
         $limit = max(1, min(5000, $limit));
         $rows = $this->db->query(
-            "SELECT id,user_id,agent_external_key,contact_phone,normalized_phone,direction,started_at,lead_history_id " .
+            "SELECT * " .
             "FROM call_records WHERE lead_id IS NULL AND link_status<>'manual' " .
             "AND (normalized_phone IS NOT NULL OR contact_phone IS NOT NULL) ORDER BY id DESC LIMIT {$limit}"
         )->fetchAll(PDO::FETCH_ASSOC);
@@ -37,7 +37,7 @@ final class CallLinkRepairService
                 'from' => ($call['direction'] ?? '') === 'inbound' ? $phone : '1000',
                 'to' => ($call['direction'] ?? '') === 'inbound' ? '1000' : $phone,
             ];
-            $match = $this->matcher->match($payload);
+            $match = (new CallLeadMatcher($this->db,(string)($call['provider'] ?? 'api4com')))->match($payload);
             $leadId = (int) ($match['lead_id'] ?? 0);
             if ($leadId <= 0 || ($onlyLeadId !== null && $leadId !== $onlyLeadId)) continue;
 

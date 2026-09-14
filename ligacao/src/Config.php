@@ -60,6 +60,11 @@ final class Config
         return new self($normalized);
     }
 
+    public function with(array $values): self
+    {
+        return self::fromArray(array_replace($this->values, $values));
+    }
+
     public function get(string $key, ?string $default = null): ?string
     {
         return array_key_exists($key, $this->values) ? $this->values[$key] : $default;

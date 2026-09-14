@@ -1,10 +1,16 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/CallFailure.php';
+require_once __DIR__ . '/CallAccounts.php';
 
 final class CallsApiClient
 {
     public function __construct(private IntegrationConfig $config, private ?Closure $transport = null) {}
+
+    public function forAccount(string $account): self
+    {
+        return new self(CallAccounts::forAccount($this->config,$account),$this->transport);
+    }
 
     public function page(int $page, array $where = []): array
     {

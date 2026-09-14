@@ -24,7 +24,7 @@ final class CallRecordingArchive
         if (!$call) throw new RuntimeException('CALL_NOT_FOUND');
         $cached=self::cached($call,$this->storage);
         if ($cached!==null) return $cached;
-        $remote = $this->api->find((string) $call['external_id']);
+        $remote = $this->api->forAccount((string)($call['provider'] ?? 'api4com'))->find((string) $call['external_id']);
         $url = trim((string) ($remote['record_url'] ?? ''));
         if ($url === '') throw new RuntimeException('RECORDING_NOT_AVAILABLE');
         $http = CallMediaTransport::http($this->storage->tempDirectory());

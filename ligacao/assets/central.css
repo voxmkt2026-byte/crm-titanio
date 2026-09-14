@@ -1,0 +1,122 @@
+/* Standalone conversation workspace. Existing reports and phone controls remain scoped. */
+:root{--line:#0b9f77}body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f3f6f7;color:#18332f}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.6}[hidden]{display:none!important}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #82b9ff;outline-offset:3px}.central-brand-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#e6f4ef;color:#078366;font-size:25px}.hero{padding:26px 0 18px}.hero h1{font-size:clamp(30px,3.5vw,44px);letter-spacing:-2px;line-height:1.08}.hero-copy{max-width:520px;line-height:1.7}.line-launchers{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0}.line-card{--line:#0b9f77;display:flex;gap:20px;align-items:center;min-height:100px;background:white;border:1px solid #dce8e3;border-radius:14px;padding:18px;text-align:left;box-shadow:none;transition:transform .18s,border-color .18s}.line-card:hover:not(:disabled){transform:translateY(-1px);border-color:var(--line)}.line-card:disabled{opacity:1;background:#f8fafb;color:#73817c}.line-card>span:nth-child(2){display:grid;gap:7px}.line-card small{font-size:10px;letter-spacing:1.4px;color:#70877e}.line-card strong{font-size:19px;color:#173a30}.line-card [data-line-status]{font-size:13px;color:#6d827a}.line-icon{display:grid;place-items:center;width:42px;height:42px;flex-shrink:0;border-radius:12px;background:color-mix(in srgb,var(--line) 10%,white);color:var(--line);font-size:22px}.line-arrow{margin-left:auto;color:var(--line);font-size:27px}.central-hint{color:#71857c;font-size:13px}.feature-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin:32px 0}.feature-cards section>span{font-size:28px;color:#629483}.feature-cards h2{font-size:17px;margin:15px 0 9px}.feature-cards p{font-size:14px;line-height:1.8;color:#7b8e84}.central-dialog{--line:#0b9f77;width:min(960px,calc(100vw - 40px));height:min(720px,calc(100dvh - 40px));max-width:none;max-height:none;margin:auto;padding:0;border:0;border-radius:16px;box-shadow:0 16px 50px #12352b26;color:#1a3430;background:#fff;overflow:hidden}.central-dialog::backdrop,.settings-dialog::backdrop{background:#132e386b;backdrop-filter:blur(3px)}.central-header{display:flex;gap:15px;align-items:center;padding:12px 18px;border-bottom:1px solid #e4ece8;background:white;min-height:64px}.central-header small{font-size:9px;letter-spacing:1.6px;color:#778d82}.central-header h2{font-size:19px;margin:5px 0 0;line-height:1.2}.central-header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}.central-header button{border:1px solid #dde8e1;background:white;border-radius:11px;height:38px;min-width:38px;color:#647b6f}.central-header>button{margin-left:auto}.central-grid{display:grid;grid-template-columns:280px minmax(0,1fr);height:calc(100% - 64px)}.central-sidebar{display:flex;flex-direction:column;background:#f5f8f7;padding:16px 12px 10px;border-right:1px solid #e2eae5;min-height:0;overflow:hidden}.sidebar-heading{display:flex;align-items:center;justify-content:space-between}.sidebar-heading h2{font-size:16px;margin:0}.sidebar-heading span{font-size:11px;color:#7b8e85}.central-sidebar #resultCaption{font-size:12px;color:#82948b;margin:10px 0 20px}.central-sidebar .search-form{display:flex;border:1px solid #dae5df;border-radius:12px;background:white;min-height:44px;gap:2px;padding:0 6px 0 12px;flex-shrink:0}.central-sidebar .search-form input{padding:8px 0;min-width:0;font-size:13px}.central-sidebar .search-button{min-width:32px;padding:0;background:transparent;box-shadow:none;color:var(--line);font-size:25px}.central-sidebar .status-message{font-size:11px;margin:6px 0;min-height:16px}.central-sidebar .calls-list{min-height:0;overflow-y:auto;flex:1;padding:2px 2px 10px}.central-sidebar .call-row{display:grid;grid-template-columns:1fr 1fr;padding:11px;gap:7px;border:1px solid #dfe8e2;border-radius:10px;background:white;margin-bottom:11px;min-width:0;font-size:12px}.central-sidebar .call-row.is-selected{border-color:var(--line);box-shadow:0 0 0 1px var(--line)}.central-sidebar .call-row>.cell:first-child{grid-column:1/-1;display:flex;gap:8px;align-items:center}.central-sidebar .cell-primary{font-size:12px;overflow-wrap:anywhere}.central-sidebar .cell-secondary{font-size:10px;overflow-wrap:anywhere}.central-sidebar .cell-label{display:block;font-size:9px;color:#8a9a91;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}.central-sidebar .phone-cell{display:block}.central-sidebar .direction-icon{display:none}.central-sidebar .status-badge{font-size:10px;padding:3px 7px}.central-sidebar .row-actions{grid-column:1/-1;justify-content:flex-start;gap:6px}.central-sidebar .action-button{font-size:11px;padding:7px 9px;min-height:30px;border-radius:8px}.central-sidebar .pagination{border:0;padding:8px 0 0;gap:8px;font-size:11px;flex-shrink:0}.central-sidebar .pagination button{border:1px solid #d8e4dc;background:white;border-radius:8px;width:34px;height:30px}.central-main{overflow:auto;min-width:0;padding:16px 20px}.dialer-drawer{border:1px solid #dde8e0;border-radius:12px;margin-bottom:18px;background:#f9fbfa}.dialer-drawer>summary{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:10px 14px;list-style:none;font-weight:600;font-size:13px}.dialer-drawer>summary>span:last-child{font-size:11px;color:var(--line)}.dialer-drawer small{font-weight:400;display:block;font-size:10px;margin-top:4px;color:#7c8e84}.central-main .webphone-panel{margin:0;padding:12px;border:0;border-top:1px solid #e1e9e4;border-radius:0;box-shadow:none;grid-template-columns:1fr;gap:10px}.central-main .webphone-panel h2{font-size:17px}.central-main .phone-overview p:not(.eyebrow){font-size:12px}.central-main .dialpad{gap:6px}.central-main .dialpad button{min-height:35px;padding:5px}.central-main .phone-display{font-size:19px}.dialer-tools{display:flex;justify-content:flex-end;gap:8px;padding:0 12px 12px}.dialer-tools button{border:1px solid #dce6df;background:white;border-radius:8px;padding:8px 12px;font-size:11px}.conversation-empty{text-align:center;padding:26px 12px;color:#779285}.conversation-empty>span{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;margin:0 auto 12px;background:#f0f7f4;color:#76a191;font-size:22px}.conversation-empty h2{font-size:17px;color:#2d5344}.conversation-empty p{max-width:350px;margin:8px auto;line-height:1.6;font-size:13px}.conversation-audio{padding-bottom:25px}.conversation-heading{display:flex;justify-content:space-between;gap:15px;margin:20px 0}.conversation-heading h2{font-size:20px;margin:6px 0;overflow-wrap:anywhere}.conversation-heading p:not(.eyebrow){font-size:12px;color:#778c81}.private-label{font-size:10px;color:#7c9184;padding-top:5px;white-space:nowrap}.conversation-audio audio{width:100%;border-radius:14px;background:#f3f6f4}.conversation-audio .dialog-note{font-size:11px;margin:10px 0 20px}.central-main .primary-button{background:var(--line);box-shadow:0 4px 12px color-mix(in srgb,var(--line) 15%,transparent);font-size:12px;padding:9px 12px}.conversation-tabs{display:flex;gap:22px;border-bottom:1px solid #e1e9e3;margin:0 0 25px}.conversation-tabs button{border:0;border-bottom:2px solid transparent;background:transparent;font-size:12px;padding:15px 0;color:#7d8d82}.conversation-tabs button[aria-selected=true]{color:var(--line);border-bottom-color:var(--line);font-weight:600}.conversation-prose{font-size:14px;line-height:1.9;color:#536e60;white-space:pre-line;overflow-wrap:anywhere}.conversation-prose h3{font-size:15px;color:#203f30}.conversation-prose .analysis-card{margin-top:20px;background:#eff7f2;padding:16px;border:1px solid #e0eae3;border-radius:14px}.central-main .analysis-content{padding:0;max-height:none;overflow:visible}.central-main .analysis-card{font-size:13px}.central-main .analysis-card h3{font-size:12px}.central-main #reanalyzeButton{margin-top:20px;font-size:12px}.settings-dialog{width:min(540px,calc(100vw - 32px));max-height:calc(100dvh - 40px);border:0;border-radius:22px;padding:0;box-shadow:0 30px 80px #173d3133}.settings-dialog form{padding:24px}.settings-dialog label{display:grid;gap:7px;font-size:12px;font-weight:600;margin-bottom:17px}.settings-dialog input,.settings-dialog select{width:100%;min-width:0;box-sizing:border-box;border:1px solid #d6e3da;padding:11px;border-radius:9px;background:white}.settings-dialog input[type=color]{padding:5px;height:43px}.settings-row{display:grid;grid-template-columns:1fr 75px;gap:15px}.settings-dialog p{font-size:12px;line-height:1.7;color:#738679;margin:0 0 20px}.settings-dialog .settings-warning{background:#f4f7f5;border-radius:9px;padding:10px}.settings-dialog #settingsNotice{color:#946025}.settings-dialog .primary-button{width:100%}#mobileHistory{display:none}#landingNotice{color:#987046;font-size:13px}.central-sidebar .loading-state,.central-sidebar .error-state{min-height:100px;padding:20px 5px}.central-sidebar .error-state h3{font-size:15px}.central-sidebar .error-state p{font-size:12px}.central-sidebar .empty-state{padding:20px 5px;min-height:100px}
+@media(max-width:760px){.app-shell{padding:0 18px}.topbar{gap:12px}.topbar-actions{gap:6px}.topbar-actions .connection-pill{display:none}.topbar-actions button{font-size:11px;padding:10px}.brand strong{font-size:16px}.brand small{font-size:9px}.hero{padding-top:30px}.hero h1{font-size:39px;letter-spacing:-1.5px}.hero-stat{display:none}.line-launchers{grid-template-columns:1fr;gap:12px}.line-card{padding:16px;min-height:92px}.line-card strong{font-size:20px}.feature-cards{grid-template-columns:1fr;gap:20px;margin:35px 0}.feature-cards section{display:none}.feature-cards section:first-child{display:block}.central-dialog{width:calc(100vw - 16px);height:calc(100dvh - 24px);border-radius:12px}.central-header{padding:10px 12px;min-height:60px}.central-header>.central-brand-icon{display:none}.central-header h2{font-size:17px}.central-header small{font-size:8px}.central-header-actions{gap:4px}.central-header button{min-width:32px;height:34px}.central-header #mobileHistory{display:block;font-size:11px;padding:0 8px}.central-grid{height:calc(100% - 60px);grid-template-columns:1fr}.central-sidebar{display:none}.central-dialog.show-history .central-sidebar{display:flex}.central-dialog.show-history .central-main{display:none}.central-main{padding:12px}.conversation-empty{padding:22px 10px}.conversation-heading{display:block}.private-label{display:block;padding:0}.conversation-heading h2{font-size:21px}.conversation-tabs{gap:20px}.central-main .webphone-panel{grid-template-columns:1fr;gap:18px}.central-sidebar .call-row{grid-template-columns:1fr 1fr}.central-main .analysis-grid{grid-template-columns:1fr}.central-main .score-grid{grid-template-columns:1fr}.settings-dialog{max-height:calc(100dvh - 20px)}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Premium call operations */
+.line-card:active:not(:disabled){transform:translateY(0) scale(.99)}
+.line-card[data-primary=true]{border-color:color-mix(in srgb,var(--line) 35%,white)}
+.line-card[data-primary=true] .line-arrow{background:color-mix(in srgb,var(--line) 10%,white);width:38px;height:38px;display:grid;place-items:center;border-radius:12px}
+.history-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 14px}
+.history-tools button{display:flex;gap:7px;align-items:center;border:1px solid #dbe5df;background:white;border-radius:9px;font-size:11px;padding:8px 10px;color:#62766b}
+.history-tools button[aria-pressed=true]{background:#fbeeed;border-color:#efd0cc;color:#a6493c}
+.history-tools button span{display:grid;place-items:center;min-width:18px;height:18px;background:#edf2ef;border-radius:5px;font-size:10px}
+#historyScope{font-size:9px;color:#89998f;text-align:right}
+.history-call-kind{grid-column:1/-1;font-size:10px;font-weight:600;color:#4a8772;letter-spacing:.2px}
+.central-sidebar .call-row>.cell:nth-child(2){grid-column:1/-1;display:flex;gap:7px;align-items:center}
+.central-sidebar .call-row[data-direction=inbound] .history-call-kind{color:#487eaf}
+.central-sidebar .row-actions{flex-wrap:wrap}
+.central-sidebar [data-action=trash]{margin-left:auto;border-color:#ead9d6;color:#b15a50;background:#fffafa}
+.central-sidebar [data-action=restore]{color:#188664;background:#eff9f4}
+.live-call-identity{display:grid;gap:10px;padding:17px 0;margin:12px 0;border-top:1px solid #e1ebe5;border-bottom:1px solid #e1ebe5}
+.live-call-identity>span{font-size:10px;color:#7c9085;letter-spacing:.2px}
+.live-call-identity>strong{font-size:22px;letter-spacing:-.5px;overflow-wrap:anywhere}
+.live-call-identity>small{font-size:11px;line-height:1.65;color:#759180;min-height:18px}
+.central-main .phone-overview>p:not(.eyebrow){display:none}
+.central-main .webphone-panel h2{font-size:15px}
+.central-main .phone-status{flex-wrap:wrap;gap:8px;padding:12px 0}
+.central-main #callTimer{font-variant-numeric:tabular-nums;font-size:25px;font-weight:600;color:#365c49;margin-left:auto;letter-spacing:1px}
+.dialer-drawer[data-call-state=active]{border-color:#7fc6a9;box-shadow:0 0 0 3px #1aaa740b}
+.dialer-drawer[data-call-state=held]{border-color:#e3bd66;background:#fffdf7}
+.dialer-drawer[data-call-state=held] .phone-status-dot{background:#d9a539}
+.advanced-call-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.advanced-call-actions button{display:flex;justify-content:center;align-items:center;gap:7px;border:1px solid #d9e5dc;background:white;padding:10px 8px;border-radius:10px;font-size:11px;color:#4a6656;min-height:38px}
+.advanced-call-actions button:hover:not(:disabled){background:#f0f7f2;border-color:#a8c9b6}
+.advanced-call-actions #copyDialNumber{grid-column:1/-1}
+.advanced-call-actions #holdButton[aria-pressed=true]{background:#fff4d9;border-color:#ebcd86;color:#916b22}
+.conversation-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.conversation-tools button{border:1px solid #dbe5df;background:white;color:#698173;border-radius:9px;padding:9px 12px;font-size:11px}
+.call-details{display:grid;grid-template-columns:150px 1fr;border:1px solid #e0e8e3;border-radius:12px;padding:15px;margin:16px 0 0;gap:10px;font-size:12px;background:#fafcfb}
+.call-details dt{color:#7c8e82}.call-details dd{margin:0;color:#355640;overflow-wrap:anywhere}
+.premium-toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:5;max-width:calc(100% - 40px);width:max-content;padding:14px 20px;background:#204d3d;color:white;border:1px solid #2c6c54;border-radius:13px;box-shadow:0 8px 30px #18332f30;font-size:12px;line-height:1.65;pointer-events:none}
+.premium-toast.is-error{background:#8b4438;border-color:#ab6458}
+.account-options{display:flex;gap:24px;padding:0 0 12px}
+.settings-dialog .account-options label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;margin-bottom:5px}
+.settings-dialog .account-options input{width:16px;height:16px;accent-color:#0b9f77}
+.connection-test{border-top:1px solid #e2eae5;margin-top:20px;padding-top:18px}
+.connection-test button{width:100%;padding:11px 15px;background:#f5f9f7;border:1px solid #d6e5dc;border-radius:10px;font-size:12px;color:#347457;font-weight:600}
+.connection-test #connectionTestResult{margin:12px 0 0;font-size:11px}
+#connectionTestResult[data-status=success]{color:#0d865f}#connectionTestResult[data-status=error]{color:#b65344}
+.operation-dialog{width:min(480px,calc(100vw - 30px))}
+.operation-dialog textarea{box-sizing:border-box;width:100%;resize:vertical;border:1px solid #d6e3da;border-radius:10px;padding:12px;font:inherit;font-weight:400}
+.operation-buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.operation-buttons button{border:1px solid #d9e3dc;border-radius:10px;padding:12px 15px;background:white;color:#61766a;font-size:12px}
+.operation-buttons button.primary-button{background:#0b9f77;color:white;width:auto;border-color:#0b9f77}
+.operation-buttons button.danger-button{background:#b64f42;color:white;border-color:#b64f42}
+.transfer-preview{padding:15px;background:#eff7f3;border:1px solid #dceae1;border-radius:11px;color:#6b8475;font-size:13px}
+.transfer-preview strong{font-size:20px;letter-spacing:1px;color:#284f39;margin-left:8px}
+.operation-dialog #transferNotice,.operation-dialog #trashNotice{margin-top:15px;color:#a25a3c}
+.central-dialog[open],.settings-dialog[open]{animation:dialogAppear .16s ease-out}
+@keyframes dialogAppear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.central-main .webphone-panel{grid-template-columns:1fr}.central-main .phone-overview .eyebrow,.central-main .phone-overview h2{display:none}.live-call-identity{padding:12px 0;margin:0}.live-call-identity>strong{font-size:21px}.central-main .phone-status{padding:8px 0}.central-main .phone-overview{padding-bottom:0}.call-details{grid-template-columns:105px 1fr;font-size:11px;padding:12px}.operation-buttons button{padding:12px;font-size:11px}.premium-toast{bottom:12px;padding:12px 15px}.account-options{gap:18px}}
+@media(prefers-reduced-motion:reduce){.central-dialog[open],.settings-dialog[open]{animation:none}}
+
+/* Compact layout: preserve existing controls, states and event targets. */
+.central-dialog{font-size:13px}
+.central-header>.central-brand-icon{width:32px;height:32px;border-radius:9px;font-size:20px}
+.central-header h2{font-size:17px;margin-top:3px}
+.central-main .webphone-panel{background:#fff}
+.central-main .phone-overview{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.central-main .phone-overview>.eyebrow,.central-main .phone-overview>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.central-main .live-call-identity{grid-column:1/-1;border:0;margin:0;padding:0;gap:3px}
+.central-main .live-call-identity>strong{font-size:16px;line-height:1.3}
+.central-main .live-call-identity>small{min-height:0;line-height:1.4}
+.central-main .live-call-identity>small:empty{display:none}
+.central-main .phone-status{display:grid;grid-template-columns:auto minmax(0,1fr) auto;border:0;background:#f4f7f6;border-radius:7px;margin:0;padding:7px 9px;min-height:34px;gap:7px}
+.central-main .phone-status strong{font-size:11px;font-weight:600}
+.central-main .phone-status-dot{width:6px;height:6px;box-shadow:none}
+.central-main #callTimer{grid-column:auto;font:600 13px/1.2 system-ui;font-variant-numeric:tabular-nums;letter-spacing:0}
+.central-main .activate-phone-button{height:34px;min-height:34px;margin:0;padding:0 10px;font-size:11px;border-radius:7px;font-weight:600}
+.central-main .phone-controls{display:grid;grid-template-columns:minmax(0,1fr) 160px;column-gap:12px;align-content:start}
+.central-main .phone-controls>label,.central-main .phone-display,.central-main .phone-error{grid-column:1/-1}
+.central-main .phone-display{min-height:40px;height:40px;padding:0 10px;font:600 17px/1.2 system-ui;border:1px solid #ccdcd4;border-radius:8px}
+.central-main .phone-error{min-height:0;font-size:11px;line-height:1.5;margin:5px 0}
+.central-main .phone-error:empty{margin:0;height:8px}
+.central-main .dialpad{grid-column:1;grid-row:4/6;gap:5px}
+.central-main .dialpad button{height:36px;min-height:36px;padding:0;font:500 17px/1 system-ui;border:1px solid #dfe7e3;border-radius:7px;background:#f9fbfa}
+.central-main .phone-actions{grid-column:2;grid-row:4;display:grid;grid-template-columns:1fr;gap:5px;margin:0}
+.central-main .phone-actions button{grid-column:auto;min-height:34px;height:34px;padding:0 9px;font:600 11px/1.2 system-ui;border-radius:7px}
+.central-main .advanced-call-actions{grid-column:2;grid-row:5;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px}
+.central-main .advanced-call-actions button{height:34px;min-height:34px;padding:0 5px;font-size:10px;border-radius:7px;gap:3px;white-space:nowrap}
+.central-main .advanced-call-actions #copyDialNumber{height:32px;min-height:32px}
+.dialer-tools button{min-height:32px;padding:5px 9px}
+.central-dialog button{transition:background-color .12s,border-color .12s,box-shadow .12s}
+.central-dialog button:active:not(:disabled){transform:translateY(1px)}
+.central-dialog button:focus-visible,.central-dialog input:focus-visible,.central-dialog summary:focus-visible{outline:2px solid #21745c;outline-offset:2px}
+.central-dialog button:disabled{opacity:.5}
+.central-main .call-button::before{content:"";display:inline-block;width:13px;height:13px;margin-right:6px;vertical-align:-2px;background:currentColor;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24c1.1.36 2.3.55 3.6.55a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.19 2.5.55 3.6a1 1 0 0 1-.24 1z'/%3E%3C/svg%3E") center/contain no-repeat}
+.webphone-panel[data-phone-state=connecting] .activate-phone-button,.webphone-panel[data-phone-state=dialing] .call-button,.webphone-panel[data-phone-state=ending] .hangup-button{cursor:progress}
+.central-main .primary-button{box-shadow:none}
+.conversation-heading{margin:12px 0}
+.conversation-tools button{min-height:32px;padding:6px 9px}
+@media(max-width:760px){
+ .central-main .webphone-panel{gap:10px;padding:10px}
+ .central-main .phone-controls{grid-template-columns:minmax(0,1fr) 140px;column-gap:8px}
+ .central-main .dialpad button{height:40px;min-height:40px}
+ .central-main .phone-actions button,.central-main .advanced-call-actions button{height:40px;min-height:40px}
+ .central-main .phone-overview{gap:7px}
+ .central-main .live-call-identity>strong{font-size:15px}
+ .central-main .activate-phone-button{font-size:10px;padding:0 8px}
+ .central-header button{height:36px;min-width:36px}
+}
+@media(max-width:420px){
+ .central-main .phone-controls{grid-template-columns:minmax(0,1fr) 110px}
+ .central-main .advanced-call-actions{grid-template-columns:1fr}
+ .central-main .advanced-call-actions #copyDialNumber{grid-column:auto;height:36px;min-height:36px}
+ .central-main .dialpad{grid-row:4/6;align-content:start}
+ .central-main .phone-actions button,.central-main .advanced-call-actions button{height:36px;min-height:36px}
+ .central-main .phone-status{grid-column:1/-1}
+ .central-main .activate-phone-button{justify-self:start}
+ .central-main .phone-display{font-size:16px}
+ .central-main .dialpad button{height:44px;min-height:44px}
+}

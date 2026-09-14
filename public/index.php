@@ -46,6 +46,25 @@ $router->get('metas', 'GoalController@index');
 $router->post('metas/update', 'GoalController@update');
 
 // ---- Leads ----
+// Native phone endpoints use CRM session, permission and CSRF checks.
+$router->get('telefonia', 'PhoneController@index');
+$router->get('telefonia/ia/configuracao', 'CopilotController@configuration');
+$router->post('telefonia/ia/iniciar', 'CopilotController@start');
+$router->post('telefonia/ia/segmentos', 'CopilotController@segments');
+$router->post('telefonia/ia/finalizar', 'CopilotController@finish');
+$router->get('configuracoes/copiloto', 'CopilotController@settings');
+$router->post('configuracoes/copiloto', 'CopilotController@saveSettings');
+$router->get('telefonia/contas', 'PhoneController@accounts');
+$router->get('telefonia/contexto', 'PhoneController@context');
+$router->get('telefonia/config', 'PhoneController@config');
+$router->get('telefonia/ramais', 'PhoneController@extensions');
+$router->post('telefonia/discar', 'PhoneController@dial');
+$router->post('telefonia/encerrar', 'PhoneController@hangup');
+$router->post('telefonia/conferir', 'PhoneController@recover');
+$router->get('telefonia/estado', 'PhoneController@state');
+$router->post('telefonia/evento', 'PhoneController@event');
+$router->get('telefonia/recurso/{name}', 'PhoneController@resource');
+$router->post('telefonia/ramal', 'PhoneController@assign');
 $router->get('leads', 'LeadController@index');
 $router->get('leads/create', 'LeadController@create');
 $router->get('leads/buscar-rapido', 'LeadController@quickSearch');
@@ -58,6 +77,11 @@ $router->post('leads/{id}/note', 'LeadController@addNote');
 $router->post('leads/check-duplicate', 'LeadController@checkDuplicate');
 $router->post('leads/{id}/whatsapp', 'WhatsappController@send');
 $router->get('ligacoes', 'CallController@index');
+$router->get('ligacoes/contas', 'CallController@accounts');
+$router->get('ligacoes/painel', 'CallController@workspace');
+$router->get('ligacoes/buscar-leads', 'CallController@workspaceLeads');
+$router->get('ligacoes/{id}/painel', 'CallController@workspaceCall');
+$router->post('ligacoes/{id}/corrigir', 'CallController@correct');
 $router->get('ligacoes/{id}', 'CallController@show');
 $router->get('ligacoes/{id}/audio', 'CallController@audio');
 $router->post('ligacoes/{id}/analisar', 'CallController@analyze');

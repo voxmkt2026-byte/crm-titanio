@@ -254,6 +254,7 @@ $tcScopeTodayUrl = url('leads?' . http_build_query(array_merge($tcScopeBase, ['v
                         <td><?= e($lead['assigned_name'] ?: '-') ?></td>
                         <td><?= e(format_date($lead['created_at'])) ?></td>
                         <td class="text-end text-nowrap">
+                            <?php $phoneActionLead=$lead; require __DIR__.'/../partials/_phone_action.php'; ?>
                             <button type="button" class="btn btn-sm btn-outline-success tc-quick-note-btn" title="Nota rápida"
                                     data-lead-id="<?= (int) $lead['id'] ?>"
                                     data-url="<?= e(url('leads/' . $lead['id'] . '/nota-rapida')) ?>"

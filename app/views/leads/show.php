@@ -20,6 +20,7 @@ $historyIcons = [
 ?>
 
 <div class="row g-3">
+    <?php if (Auth::can('calls.dial')): ?><div class="col-12 d-flex align-items-center gap-2"><?php $phoneActionLead=$lead; require __DIR__.'/../partials/_phone_action.php'; ?><span class="small text-muted">Telefone do contato</span></div><?php endif; ?>
     <div class="col-lg-8">
         <div class="tc-card mb-3">
             <div class="tc-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -294,3 +295,4 @@ document.addEventListener("DOMContentLoaded", function () {
 ?>
 <?php endif; ?>
 <?php require APP_PATH . '/views/calls/_lead_section.php'; ?>
+<?php $copilotLeadId=(int)$lead['id']; require APP_PATH.'/views/calls/_copilot_reports.php'; ?>

@@ -10,8 +10,19 @@ final class JsonResponse
 {
     /** @var array<string, string> */
     private const MESSAGES = [
+        'INVALID_ACCOUNT' => 'Conta inválida.',
+        'ACCOUNT_DISABLED' => 'Esta conta está desativada. Ative-a nas configurações para continuar.',
+        'TRASH_STORAGE_FAILED' => 'Não foi possível acessar a lixeira local. Os dados foram preservados.',
+        'TRASH_CONFIRMATION_REQUIRED' => 'Confirme o envio da ligação para a lixeira local.',
+        'INVALID_TRASH_REASON' => 'Informe um motivo com até 500 caracteres.',
+        'INVALID_TRASH_ACTION' => 'Ação de lixeira inválida.',
+        'ACCOUNT_NOT_CONFIGURED' => 'Configure o token desta conta para continuar.',
+        'INVALID_ACCOUNT_SETTINGS' => 'Configuração inválida. Use nome, cor hexadecimal, URL https://api.api4com.com/api/v1 e ramal numérico.',
+        'ACCOUNT_STORAGE_FAILED' => 'Não foi possível acessar a configuração local das contas.',
         'METHOD_NOT_ALLOWED' => 'Método não permitido.',
         'INVALID_JSON' => 'O conteúdo enviado não é um JSON válido.',
+        'INVALID_CONTENT_TYPE' => 'O webphone aceita somente conteúdo JSON.',
+        'WEBPHONE_ORIGIN_DENIED' => 'A origem desta solicitação não é permitida.',
         'INVALID_CALL_ID' => 'Identificador de ligação inválido.',
         'INVALID_PHONE_FILTER' => 'Informe um número válido.',
         'CALL_NOT_FOUND' => 'Ligação não encontrada.',
@@ -30,6 +41,11 @@ final class JsonResponse
         'AI_ANALYSIS_FAILED' => 'Não foi possível analisar esta ligação.',
         'AI_RATE_LIMIT' => 'O serviço de IA recebeu muitas solicitações. Tente novamente em instantes.',
         'ANALYSIS_BUSY' => 'Esta ligação já está sendo analisada.',
+        'WEBPHONE_LOCAL_ONLY' => 'O webphone está disponível somente neste computador.',
+        'WEBPHONE_EXTENSION_NOT_FOUND' => 'O ramal configurado não está disponível.',
+        'WEBPHONE_CONFIG_FAILED' => 'Não foi possível configurar o telefone.',
+        'WEBPHONE_PROVIDER_FAILED' => 'A Api4Com não conseguiu concluir a operação do telefone.',
+        'INVALID_PHONE' => 'Informe um telefone válido com DDD.',
         'INTERNAL_ERROR' => 'Ocorreu um erro inesperado. Tente novamente.',
     ];
 
@@ -76,4 +92,3 @@ final class JsonResponse
         exit;
     }
 }
-

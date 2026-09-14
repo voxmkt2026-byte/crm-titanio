@@ -8,6 +8,8 @@ require_once APP_PATH . '/services/Calls/CallSyncService.php';
 require_once APP_PATH . '/services/Calls/CallRecordingArchive.php';
 require_once APP_PATH . '/services/Calls/CallLinkRepairService.php';
 require_once APP_PATH . '/services/Calls/CallAudioRange.php';
+require_once APP_PATH . '/services/Calls/CallAccounts.php';
+require_once APP_PATH . '/services/Calls/CallWorkspaceService.php';
 
 final class CallController extends Controller
 {
@@ -34,9 +36,9 @@ final class CallController extends Controller
 
     }
 
-    private function service(): CallSyncService
+    private function service(string $account = 'api4com'): CallSyncService
     {
-        return new CallSyncService(Database::getInstance(), $this->config());
+        return new CallSyncService(Database::getInstance(), $this->config(), $account);
     }
     public function index(): void
     {
@@ -64,6 +66,7 @@ final class CallController extends Controller
             'pagination' => ['page' => $result['page'], 'pages' => $result['pages'], 'total' => $result['total']],
             'metrics' => $metrics,
             'syncState' => $this->calls->syncState(),
+            'callAccounts' => $this->accountList(),
         ]);
     }
 
@@ -116,7 +119,7 @@ final class CallController extends Controller
         flush();
 
         try {
-            $service = $this->service();
+            $service = $this->service((string)($call['provider'] ?? 'api4com'));
             if ($this->input('force', '0') === '1' || ($call['analysis_status'] ?? '') !== 'completed') {
                 $service->reanalyze((int) $id);
             }
@@ -147,7 +150,7 @@ final class CallController extends Controller
         }
 
         try {
-            $this->service()->importCachedAnalysis((int) $id, ROOT_PATH . '/ligacao/storage/analyses');
+            $this->service((string)($call['provider'] ?? 'api4com'))->importCachedAnalysis((int) $id, ROOT_PATH . '/ligacao/storage/analyses');
             if ($ajax) $this->json(['success' => true, 'redirect' => url('ligacoes/' . $id)]);
             flash('success', 'Análise importada com sucesso.');
         } catch (Throwable $error) {
@@ -162,6 +165,92 @@ final class CallController extends Controller
             flash('error', $message);
         }
         $this->redirect('ligacoes/' . $id);
+    }
+
+    private function accountList(): array
+    {
+        try { return CallAccounts::all($this->config()); }
+        catch (Throwable $e) {
+            CallFailure::log('workspace_accounts',$e);
+            return [
+                'api4com'=>['key'=>'api4com','name'=>'Linha 1','color'=>'#2563eb','configured'=>false],
+                'api4com_2'=>['key'=>'api4com_2','name'=>'Linha 2','color'=>'#7c3aed','configured'=>false],
+            ];
+        }
+    }
+
+    private function workspaceGuard(): void
+    {
+        $this->requireLogin();
+        if (!Auth::can('calls.view_all') && !Auth::can('calls.view_own')) $this->json(['success'=>false,'message'=>'Sem permissão para visualizar ligações.'],403);
+        header('Cache-Control: no-store');
+    }
+
+    public function accounts(): void
+    {
+        $this->workspaceGuard();
+        try { $this->json(['success'=>true,'accounts'=>CallAccounts::all($this->config())]); }
+        catch (Throwable $e) { CallFailure::log('accounts',$e);$this->json(['success'=>false,'message'=>'Não foi possível ler a configuração das linhas.'],503); }
+    }
+
+    public function workspace(): void
+    {
+        $this->workspaceGuard();
+        try {
+            $account=CallAccounts::key((string)$this->input('account','api4com'));
+            $this->workspaceResponse($account,null,max(0,(int)$this->input('lead_id',0)),trim((string)$this->input('number','')));
+        } catch (InvalidArgumentException $e) { $this->json(['success'=>false,'message'=>$e->getMessage()],422); }
+        catch (Throwable $e) { CallFailure::log('workspace',$e);$this->json(['success'=>false,'message'=>'Não foi possível carregar o histórico de ligações.'],500); }
+    }
+
+    public function workspaceCall(string $id): void
+    {
+        $this->workspaceGuard();
+        if (!ctype_digit($id) || (int)$id<1) $this->json(['success'=>false,'message'=>'Ligação não encontrada.'],404);
+        $call=$this->calls->detail((int)$id);
+        if (!$call || !$this->allowed($call)) $this->json(['success'=>false,'message'=>'Ligação não encontrada ou sem acesso.'],404);
+        $leadId=max(0,(int)$this->input('lead_id',$call['lead_id']??0));
+        $number=trim((string)$this->input('number',$leadId?'':($call['normalized_phone']??'')));
+        try { $this->workspaceResponse((string)$call['provider'],$call,$leadId,$number); }
+        catch (Throwable $e) { CallFailure::log('workspace_call',$e);$this->json(['success'=>false,'message'=>'Não foi possível carregar esta conversa.'],500); }
+    }
+
+    private function workspaceResponse(string $account,?array $call,int $leadId,string $number): void
+    {
+        $calls=(new CallWorkspaceService(Database::getInstance()))->list((int)Auth::id(),Auth::can('calls.view_all'),$account,$leadId?:null,$number);
+        if (!$call && $calls) $call=$this->calls->detail((int)$calls[0]['id']);
+        $html='';$accounts=$this->accountList();
+        if ($call && $this->allowed($call)) $html=$this->workspaceHtml($call,$accounts[$account]);
+        else $call=null;
+        $this->json(['success'=>true,'account'=>$account,'accounts'=>$accounts,'calls'=>$calls,'selected_id'=>$call?(int)$call['id']:null,'detail_html'=>$html,'lead_id'=>$leadId,'number'=>$number]);
+    }
+
+    private function workspaceHtml(array $call,array $account): string
+    {
+        $canAnalyze=Auth::can('calls.reanalyze');$canCorrect=Auth::can('calls.manage');$canDetach=$canCorrect&&Auth::can('calls.view_all');
+        $level=ob_get_level();ob_start();
+        try { require APP_PATH.'/views/calls/_workspace_detail.php';return (string)ob_get_clean(); }
+        catch (Throwable $e) { while(ob_get_level()>$level)ob_end_clean();throw $e; }
+    }
+
+    public function workspaceLeads(): void
+    {
+        $this->workspaceGuard();
+        if (!Auth::can('calls.manage')) $this->json(['success'=>false,'message'=>'Sem permissão para corrigir associações.'],403);
+        $leads=(new CallWorkspaceService(Database::getInstance()))->findLeads((int)Auth::id(),Auth::can('calls.view_all'),(string)$this->input('search',''));
+        $this->json(['success'=>true,'leads'=>$leads]);
+    }
+
+    public function correct(string $id): void
+    {
+        $this->workspaceGuard();Csrf::verifyRequest();
+        if (!Auth::can('calls.manage')) $this->json(['success'=>false,'message'=>'Somente gestores autorizados podem corrigir associações.'],403);
+        try {
+            (new CallWorkspaceService(Database::getInstance()))->correct((int)$id,(int)Auth::id(),Auth::can('calls.view_all'),(string)$this->input('action',''),(int)$this->input('lead_id',0)?:null,(string)$this->input('reason',''));
+            $this->json(['success'=>true,'message'=>'Correção registrada. Áudio, análise e cadastro preservados.']);
+        } catch (PDOException $e) { CallFailure::log('correction',$e);$this->json(['success'=>false,'message'=>'A correção não foi salva. Nenhuma alteração foi confirmada.'],500); }
+        catch (InvalidArgumentException $e) { $this->json(['success'=>false,'message'=>$e->getMessage()],422); }
+        catch (RuntimeException $e) { $this->json(['success'=>false,'message'=>'Ligação ou lead indisponível para esta operação.'],403); }
     }
 
     public function audio(string $id): void
@@ -213,7 +302,7 @@ final class CallController extends Controller
     {
         $started=false;
         try {
-            $remote=(new CallsApiClient($this->config()))->find((string)$call['external_id']);
+            $remote=(new CallsApiClient(CallAccounts::forAccount($this->config(),(string)($call['provider']??'api4com'))))->find((string)$call['external_id']);
             $url=trim((string)($remote['record_url']??''));
             if ($url==='') throw new RuntimeException('RECORDING_NOT_AVAILABLE');
             CallMediaTransport::http(STORAGE_PATH.'/calls-tmp')->stream(

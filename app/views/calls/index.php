@@ -9,6 +9,7 @@ $pageUrl = static fn (int $page): string => url('ligacoes?' . http_build_query(a
     'page' => $page,
 ], static fn ($value) => $value !== '')));
 ?>
+<div class="cw-index">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 
@@ -21,6 +22,7 @@ $pageUrl = static fn (int $page): string => url('ligacoes?' . http_build_query(a
     </div>
 </div>
 
+<?php require __DIR__ . '/_workspace.php'; ?>
 <div class="row g-3 mb-4">
     <?php foreach ([
         ['Total útil', $metrics['visible_calls'], 'fa-phone-volume', 'primary'],
@@ -50,13 +52,13 @@ $pageUrl = static fn (int $page): string => url('ligacoes?' . http_build_query(a
         <tbody>
         <?php foreach ($calls as $call): ?>
         <tr>
-            <td><strong><?= e(format_datetime($call['started_at'])) ?></strong><div class="small text-muted"><?= ($call['direction'] ?? '') === 'inbound' ? 'Recebida' : (($call['direction'] ?? '') === 'outbound' ? 'Realizada' : 'Direção não identificada') ?></div></td>
+            <td><span class="cw-table-line"><?= e($callAccounts[$call['provider']??'api4com']['name']??'Linha 1') ?></span><strong><?= e(format_datetime($call['started_at'])) ?></strong><div class="small text-muted"><?= ($call['direction'] ?? '') === 'inbound' ? 'Recebida' : (($call['direction'] ?? '') === 'outbound' ? 'Realizada' : 'Direção não identificada') ?></div></td>
             <td><?php if (!empty($call['lead_id'])): ?><a class="fw-semibold text-decoration-none" href="<?= e(url('leads/' . $call['lead_id'])) ?>"><?= e($call['lead_name']) ?></a><?php else: ?><span class="text-warning fw-semibold">Não associado</span><?php endif; ?><div class="small text-muted"><?= e(!empty($call['normalized_phone']) ? format_phone($call['normalized_phone']) : ($call['contact_phone'] ?: 'Número indisponível')) ?></div></td>
             <td><?= e($call['agent_name'] ?: $call['agent_external_key'] ?: 'Responsável não identificado') ?></td>
             <td><?= e(gmdate('i:s', (int) $call['duration'])) ?></td>
             <td><span class="badge text-bg-<?= in_array(strtoupper((string)($call['hangup_cause'] ?? '')), ['NORMAL_CLEARING','SUCCESS','ANSWER'], true) ? 'success' : 'secondary' ?>"><?= e(call_status_label($call['hangup_cause'] ?? null)) ?></span></td>
             <td><?php if (($call['analysis_status'] ?? '') === 'completed'): ?><span class="badge text-bg-success"><?= isset($call['overall_score']) ? (int) $call['overall_score'] . '/10' : 'Concluída' ?></span><?php elseif (($call['analysis_status'] ?? '') === 'failed'): ?><span class="badge text-bg-danger">Falhou</span><?php elseif (($call['analysis_status'] ?? '') === 'processing'): ?><span class="badge text-bg-info">Processando</span><?php else: ?><span class="badge text-bg-warning">Pendente</span><?php endif; ?></td>
-            <td class="text-end text-nowrap"><?php if (($call['recording_status'] ?? '') !== 'discarded' && ($call['recording_status'] ?? '') !== 'unavailable'): ?><a class="btn btn-sm btn-outline-secondary" href="<?= e(url('ligacoes/' . $call['id'])) ?>"><i class="fa-solid fa-play me-1"></i>Ouvir</a><?php endif; ?><?php if (($call['analysis_status'] ?? '') === 'completed'): ?><a class="btn btn-sm btn-primary" href="<?= e(url('ligacoes/' . $call['id'])) ?>"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Insights</a><?php elseif (Auth::can('calls.reanalyze')): ?><form class="d-inline js-call-analysis-form" method="post" action="<?= e(url('ligacoes/' . $call['id'] . '/analisar')) ?>" data-external-id="<?= e($call['external_id'] ?? '') ?>"><?= Csrf::field() ?><input type="hidden" name="force" value="0"><button type="submit" class="btn btn-sm btn-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Analisar</button></form><?php else: ?><a class="btn btn-sm btn-outline-primary" href="<?= e(url('ligacoes/' . $call['id'])) ?>">Detalhes</a><?php endif; ?></td>
+            <td class="text-end text-nowrap"><?php if (($call['recording_status'] ?? '') !== 'discarded' && ($call['recording_status'] ?? '') !== 'unavailable'): ?><a class="btn btn-sm btn-outline-secondary cw-open-link" data-cw-open="<?= (int)$call['id'] ?>" href="<?= e(url('ligacoes/' . $call['id'])) ?>"><i class="fa-solid fa-headset me-1"></i>Ver ligação</a><?php endif; ?><?php if (($call['analysis_status'] ?? '') === 'completed'): ?><a class="btn btn-sm btn-primary cw-open-link" data-cw-open="<?= (int)$call['id'] ?>" href="<?= e(url('ligacoes/' . $call['id'])) ?>"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Insights</a><?php elseif (Auth::can('calls.reanalyze')): ?><form class="d-inline js-call-analysis-form" method="post" action="<?= e(url('ligacoes/' . $call['id'] . '/analisar')) ?>" data-external-id="<?= e($call['external_id'] ?? '') ?>"><?= Csrf::field() ?><input type="hidden" name="force" value="0"><button type="submit" class="btn btn-sm btn-primary"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Analisar</button></form><?php else: ?><a class="btn btn-sm btn-outline-primary cw-open-link" data-cw-open="<?= (int)$call['id'] ?>" href="<?= e(url('ligacoes/' . $call['id'])) ?>">Detalhes</a><?php endif; ?></td>
         </tr>
         <?php endforeach; ?>
         <?php if (!$calls): ?><tr><td colspan="7" class="text-center py-5"><div class="text-muted mb-3"><i class="fa-solid fa-phone-slash fa-2x mb-3 d-block"></i>Nenhuma ligação sincronizada com estes filtros.</div><?php if (Auth::can('calls.manage')): ?><a class="btn btn-primary" href="<?= e(url('configuracoes/ligacoes')) ?>">Configurar ou sincronizar agora</a><?php endif; ?></td></tr><?php endif; ?>
@@ -65,3 +67,5 @@ $pageUrl = static fn (int $page): string => url('ligacoes?' . http_build_query(a
     <?php if ((int) $pagination['pages'] > 1): ?><div class="card-footer d-flex justify-content-between align-items-center"><span class="small text-muted"><?= (int) $pagination['total'] ?> ligação(ões)</span><div class="btn-group"><a class="btn btn-outline-secondary <?= (int)$pagination['page'] <= 1 ? 'disabled' : '' ?>" href="<?= e($pageUrl(max(1,(int)$pagination['page']-1))) ?>">Anterior</a><a class="btn btn-outline-secondary <?= (int)$pagination['page'] >= (int)$pagination['pages'] ? 'disabled' : '' ?>" href="<?= e($pageUrl(min((int)$pagination['pages'],(int)$pagination['page']+1))) ?>">Próxima</a></div></div><?php endif; ?>
 </div>
 <?php require __DIR__ . '/_analysis_script.php'; ?>
+
+</div>

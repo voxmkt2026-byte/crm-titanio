@@ -16,6 +16,11 @@
 # Protege contra listagem de diretórios
 Options -Indexes
 
+# Módulos do copiloto e AudioWorklet devem ser entregues como JavaScript.
+<IfModule mod_mime.c>
+    AddType text/javascript .mjs
+</IfModule>
+
 # Bloqueia acesso direto a arquivos sensíveis, se por engano ficarem na pasta public
 <FilesMatch "\.(sql|log|md|env)$">
     Require all denied

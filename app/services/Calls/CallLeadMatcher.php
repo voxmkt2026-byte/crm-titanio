@@ -3,13 +3,15 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/PhoneNormalizer.php';
+require_once __DIR__ . '/CallAccounts.php';
 
 final class CallLeadMatcher
 {
     private ?array $phoneIndex = null;
 
-    public function __construct(private PDO $db)
+    public function __construct(private PDO $db, private string $account = 'api4com')
     {
+        $this->account=CallAccounts::key($account);
     }
 
     public function match(array $call): array
@@ -108,7 +110,7 @@ final class CallLeadMatcher
         }
         try {
             $mapping = $this->db->prepare('SELECT user_id FROM call_agent_mappings WHERE provider=:provider AND external_key=:external_key LIMIT 1');
-            $mapping->execute([':provider' => 'api4com', ':external_key' => $externalKey]);
+            $mapping->execute([':provider' => $this->account, ':external_key' => $externalKey]);
             $mapped = $mapping->fetchColumn();
             if ($mapped !== false && (int) $mapped > 0) {
                 return (int) $mapped;

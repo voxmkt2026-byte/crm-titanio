@@ -13,6 +13,15 @@ interface IntegrationCredentialStore
 
 final class IntegrationConfig
 {
+    private string $callAccount = 'api4com';
+
+    public function forCallAccount(string $account): self
+    {
+        if (!in_array($account,['api4com','api4com_2'],true)) throw new InvalidArgumentException('Conta de ligações inválida.');
+        $copy=clone $this;
+        $copy->callAccount=$account;
+        return $copy;
+    }
     public function __construct(private IntegrationCredentialStore $store, private SecretVault $vault, private array $environment = []) {}
 
     public static function legacyEnvironment(string $path): array
@@ -25,6 +34,7 @@ final class IntegrationConfig
 
     public function get(string $provider, string $key, ?string $default = null): ?string
     {
+        if ($provider === 'api4com') $provider=$this->callAccount;
         $this->assertName($provider);
         $this->assertName($key);
         $row = $this->store->findCredential($provider, $key);
@@ -32,6 +42,7 @@ final class IntegrationConfig
             $value = (string) ($row['config_value'] ?? '');
             return (int) ($row['is_secret'] ?? 0) === 1 ? $this->vault->decrypt($value) : $value;
         }
+        if ($provider === 'api4com_2') return $default;
         $environmentKey = strtoupper($provider . '_' . $key);
         $value = $this->environment[$environmentKey] ?? getenv($environmentKey);
         return is_string($value) && $value !== '' ? $value : $default;

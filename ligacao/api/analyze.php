@@ -8,10 +8,13 @@ use App\JsonResponse;
 require dirname(__DIR__) . '/bootstrap.php';
 
 try {
+    $guard = new App\LocalRequestGuard();
+    $guard->assertLocalRead($_SERVER);
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
         throw new AppException('Método inválido em análise.', 'METHOD_NOT_ALLOWED', 405);
     }
 
+    $guard->assertSettingsRequest($_SERVER);
     $raw = file_get_contents('php://input');
     try {
         $payload = json_decode((string) $raw, true, 32, JSON_THROW_ON_ERROR);
@@ -32,4 +35,3 @@ try {
     $status = $error instanceof AppException ? $error->status() : 500;
     JsonResponse::emit(JsonResponse::fromThrowable($error), $status);
 }
-

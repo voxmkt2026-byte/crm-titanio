@@ -765,3 +765,181 @@ h1 {
         transition-duration: .01ms !important;
     }
 }
+
+/* Webphone */
+.webphone-panel {
+    margin-bottom: 22px;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, .85fr) minmax(300px, 1.15fr);
+    gap: 28px;
+    border: 1px solid rgba(15, 159, 110, .2);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(230,247,240,.62));
+    box-shadow: var(--shadow-sm);
+}
+
+.phone-overview {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.phone-overview h2 {
+    margin-bottom: 8px;
+    font: 800 22px/1.2 var(--font-display);
+    letter-spacing: -.025em;
+}
+
+.phone-overview > p:not(.eyebrow) {
+    max-width: 480px;
+    margin-bottom: 18px;
+    color: var(--ink-600);
+}
+
+.phone-status {
+    width: 100%;
+    min-height: 48px;
+    margin-top: auto;
+    padding: 10px 13px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 9px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255,255,255,.85);
+}
+
+.phone-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ink-500);
+    box-shadow: 0 0 0 4px var(--line-soft);
+}
+
+.phone-status strong { font-size: 13px; }
+.phone-status span:last-child { color: var(--ink-600); font: 800 13px/1 var(--font-display); }
+
+.webphone-panel[data-phone-state="ready"] .phone-status-dot,
+.webphone-panel[data-phone-state="active"] .phone-status-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.webphone-panel[data-phone-state="connecting"] .phone-status-dot,
+.webphone-panel[data-phone-state="dialing"] .phone-status-dot,
+.webphone-panel[data-phone-state="ringing"] .phone-status-dot,
+.webphone-panel[data-phone-state="ending"] .phone-status-dot {
+    background: var(--warning);
+    box-shadow: 0 0 0 4px var(--warning-soft);
+}
+
+.webphone-panel[data-phone-state="error"] .phone-status-dot {
+    background: var(--danger);
+    box-shadow: 0 0 0 4px var(--danger-soft);
+}
+
+.activate-phone-button {
+    min-height: 44px;
+    margin-top: 12px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 11px;
+    color: #fff;
+    background: var(--ink-950);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.activate-phone-button:hover:not(:disabled) { background: var(--ink-800); }
+.activate-phone-button:disabled { cursor: not-allowed; opacity: .5; }
+
+.phone-controls label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink-600);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.phone-display {
+    width: 100%;
+    min-height: 50px;
+    padding: 0 15px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink-950);
+    background: var(--surface);
+    font: 700 18px/1 var(--font-display);
+    letter-spacing: .02em;
+}
+
+.phone-display:disabled { background: var(--surface-soft); color: var(--ink-500); }
+.phone-error { min-height: 20px; margin: 5px 0 4px; color: var(--danger); font-size: 12px; font-weight: 700; }
+
+.dialpad {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(44px, 1fr));
+    gap: 8px;
+}
+
+.dialpad button {
+    min-height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink-800);
+    font: 800 16px/1 var(--font-display);
+    cursor: pointer;
+}
+
+.dialpad button:hover:not(:disabled) { border-color: #a8c4b8; background: var(--accent-soft); }
+.dialpad button:disabled { cursor: not-allowed; opacity: .45; }
+
+.phone-actions {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.call-button,
+.hangup-button,
+.mute-button {
+    min-height: 46px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.call-button { color: #fff; background: var(--accent-dark); }
+.hangup-button { color: #fff; background: #a92f2f; }
+.mute-button { color: var(--ink-800); border-color: var(--line); background: var(--surface); }
+.mute-button[aria-pressed="true"] { color: #8e5a17; border-color: #efd9ba; background: var(--warning-soft); }
+
+.call-button:hover:not(:disabled) { background: #066340; }
+.hangup-button:hover:not(:disabled) { background: #842323; }
+.call-button:disabled,
+.hangup-button:disabled,
+.mute-button:disabled { cursor: not-allowed; opacity: .45; }
+
+@media (max-width: 760px) {
+    .webphone-panel {
+        padding: 19px;
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .phone-actions { grid-template-columns: 1fr 1fr; }
+    .mute-button { grid-column: 1 / -1; }
+}
+
+@media (max-width: 430px) {
+    .webphone-panel { padding: 16px; border-radius: 18px; }
+    .phone-status { grid-template-columns: auto 1fr; }
+    .phone-status span:last-child { grid-column: 2; }
+}
